@@ -1,0 +1,3 @@
+-keepattributes *Annotation*
+-keep class com.nfcemulator.dump.model.** { *; }
+-keep class com.nfcemulator.storage.local.** { *; }
