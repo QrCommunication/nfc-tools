@@ -12,17 +12,13 @@ class NfcEmulatorApp : Application() {
         Shell.enableVerboseLogging = false
         Shell.setDefaultBuilder(
             Shell.Builder.create()
-                .setFlags(Shell.FLAG_REDIRECT_STDERR or Shell.FLAG_MOUNT_MASTER)
+                .setFlags(Shell.FLAG_REDIRECT_STDERR)
                 .setTimeout(30)
         )
     }
 
     override fun onCreate() {
         super.onCreate()
-
-        // Warm up Shell in background to detect root early
-        Shell.getShell { }
-
         startKoin {
             androidContext(this@NfcEmulatorApp)
             modules(allModules)
