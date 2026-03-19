@@ -39,11 +39,8 @@ val nfcModule = module {
     single { KeyCracker(get()) }
     single { TagReader() }
     single { DumpParserFactory() }
-    single<NfcEmulatorHal> {
-        val hasRoot = try { Shell.isAppGrantedRoot() == true } catch (_: Exception) { false }
-        if (hasRoot) RootNxpEmulatorHal(androidContext())
-        else HceEmulatorHal(androidContext())
-    }
+    single<NfcEmulatorHal> { RootNxpEmulatorHal(androidContext()) }
+    single { HceEmulatorHal(androidContext()) }
 }
 
 val viewModelModule = module {
