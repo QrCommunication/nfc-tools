@@ -21,7 +21,6 @@ fun SettingsScreen(
     totalKeys: Int,
     totalTags: Int,
     storageSize: String,
-    nxpDebugLog: String = "",
     onExportBackup: () -> Unit,
     onImportBackup: () -> Unit
 ) {
@@ -78,20 +77,6 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Backup")
-            }
-        }
-
-        if (nxpDebugLog.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            SettingsSection("NXP Detection Log") {
-                Text(
-                    nxpDebugLog,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp)
-                    ),
-                    color = NfcColors.TextSecondary
-                )
             }
         }
 

@@ -5,11 +5,10 @@ import com.nfcemulator.dump.model.EmulationCapabilities
 import com.nfcemulator.dump.model.EmulationResult
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.dump.model.TagType
+import com.nfcemulator.nfc.emulator.EmulationState
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -17,10 +16,8 @@ class RootNxpEmulatorHal(
     private val context: Context
 ) : NfcEmulatorHal {
 
-    private val _isEmulating = MutableStateFlow(false)
-    override val isEmulating: StateFlow<Boolean> = _isEmulating.asStateFlow()
+    override val isEmulating: StateFlow<Boolean> = EmulationState.isEmulating
 
-    private var currentDump: TagDump? = null
     private var cachedCapabilities: EmulationCapabilities? = null
     var rootDebugLog: String = ""
         private set
@@ -60,45 +57,34 @@ class RootNxpEmulatorHal(
     }
 
     override suspend fun startEmulation(dump: TagDump): EmulationResult {
+        // Use HCE emulation via EmulationState (works without sysfs)
+        // The NfcHostApduService reads from EmulationState.currentDump
+        EmulationState.startEmulation(dump)
+
+        // If we have root, also try native NXP emulation for Mifare Classic
         val capabilities = getCapabilities()
-        if (!capabilities.hasRoot) {
-            return EmulationResult.Error("Root access required for Mifare Classic emulation")
-        }
-        if (!capabilities.hasNxpChipset) {
-            return EmulationResult.Error("NXP chipset not detected. Mifare Classic emulation requires NXP NFC hardware")
-        }
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val uidHex = dump.uid.joinToString("") { "%02X".format(it) }
-                val result = Shell.cmd(
-                    "echo $uidHex > /sys/class/nfc/nfc0/uid_emulation"
-                ).exec()
-
-                if (result.isSuccess) {
-                    currentDump = dump
-                    _isEmulating.value = true
-                    EmulationResult.Started
-                } else {
-                    EmulationResult.Error("Failed to configure NFC emulation: ${result.err.joinToString()}")
-                }
-            } catch (e: Exception) {
-                EmulationResult.Error("Emulation failed: ${e.message}", e)
+        if (capabilities.hasRoot && capabilities.hasNxpChipset) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val uidHex = dump.uid.joinToString("") { "%02X".format(it) }
+                    Shell.cmd("echo $uidHex > /sys/class/nfc/nfc0/uid_emulation 2>/dev/null").exec()
+                } catch (_: Exception) {}
             }
         }
+
+        return EmulationResult.Started
     }
 
     override suspend fun stopEmulation(): EmulationResult {
-        return withContext(Dispatchers.IO) {
+        EmulationState.stopEmulation()
+
+        withContext(Dispatchers.IO) {
             try {
-                Shell.cmd("echo 0 > /sys/class/nfc/nfc0/uid_emulation").exec()
-                currentDump = null
-                _isEmulating.value = false
-                EmulationResult.Stopped
-            } catch (e: Exception) {
-                EmulationResult.Error("Failed to stop emulation: ${e.message}", e)
-            }
+                Shell.cmd("echo 0 > /sys/class/nfc/nfc0/uid_emulation 2>/dev/null").exec()
+            } catch (_: Exception) {}
         }
+
+        return EmulationResult.Stopped
     }
 
     private fun checkRoot(): Boolean {
@@ -424,5 +410,5 @@ class RootNxpEmulatorHal(
         return false
     }
 
-    fun getCurrentDump(): TagDump? = currentDump
+    fun getCurrentDump(): TagDump? = EmulationState.currentDump.value
 }
