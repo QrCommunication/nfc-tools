@@ -21,7 +21,7 @@ fun SettingsScreen(
     totalKeys: Int,
     totalTags: Int,
     storageSize: String,
-    rootDebugLog: String = "",
+    nxpDebugLog: String = "",
     onExportBackup: () -> Unit,
     onImportBackup: () -> Unit
 ) {
@@ -81,11 +81,11 @@ fun SettingsScreen(
             }
         }
 
-        if (rootDebugLog.isNotEmpty()) {
+        if (nxpDebugLog.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
-            SettingsSection("Root Detection Log") {
+            SettingsSection("NXP Detection Log") {
                 Text(
-                    rootDebugLog,
+                    nxpDebugLog,
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
                         fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp)

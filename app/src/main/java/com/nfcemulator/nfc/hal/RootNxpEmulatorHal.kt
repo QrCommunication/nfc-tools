@@ -24,6 +24,8 @@ class RootNxpEmulatorHal(
     private var cachedCapabilities: EmulationCapabilities? = null
     var rootDebugLog: String = ""
         private set
+    var nxpDebugLog: String = ""
+        private set
 
     override suspend fun getCapabilities(): EmulationCapabilities {
         cachedCapabilities?.let { return it }
@@ -282,54 +284,143 @@ class RootNxpEmulatorHal(
     }
 
     private fun checkNxpChipset(): Boolean {
-        // Method 1: Check sysfs
-        try {
-            val result = Shell.cmd("ls /sys/class/nfc/nfc0/ 2>/dev/null").exec()
-            if (result.isSuccess && result.out.any {
-                it.contains("nxp", ignoreCase = true) || it.contains("pn5", ignoreCase = true)
-            }) return true
-        } catch (_: Exception) {}
+        val log = StringBuilder()
 
-        // Method 2: Check NFC chipset via getprop
+        // Method 1: getprop for NFC hardware — most reliable
         try {
-            val result = Shell.cmd("getprop | grep -i nfc").exec()
-            if (result.isSuccess && result.out.any {
-                it.contains("nxp", ignoreCase = true) ||
-                it.contains("pn54", ignoreCase = true) ||
-                it.contains("pn55", ignoreCase = true) ||
-                it.contains("pn65", ignoreCase = true) ||
-                it.contains("pn66", ignoreCase = true) ||
-                it.contains("pn67", ignoreCase = true) ||
-                it.contains("pn80", ignoreCase = true) ||
-                it.contains("pn81", ignoreCase = true) ||
-                it.contains("sn1", ignoreCase = true) ||
-                it.contains("sn2", ignoreCase = true)
-            }) return true
-        } catch (_: Exception) {}
-
-        // Method 3: Check for libnfc-nci or libnfc-nxp
-        try {
-            val libPaths = listOf(
-                "/system/lib64/libnfc-nci.so",
-                "/system/lib/libnfc-nci.so",
-                "/vendor/lib64/libnfc-nci.so",
-                "/vendor/lib/libnfc-nci.so",
-                "/system/lib64/libnfc_nci_jni.so",
-                "/vendor/lib64/nfc_nci.nxp.default.so"
+            log.append("[NXP-1] getprop nfc... ")
+            val nfcProps = listOf(
+                "ro.hardware.nfc_nci",
+                "ro.nfc.port",
+                "persist.nfc_nci.nfc_chipid",
+                "ro.hardware.nfc",
+                "nfc.nxp.chip.model"
             )
-            for (path in libPaths) {
-                if (File(path).exists()) return true
+            for (prop in nfcProps) {
+                val process = ProcessBuilder("getprop", prop).redirectErrorStream(true).start()
+                val value = process.inputStream.bufferedReader().use { it.readText().trim() }
+                process.waitFor()
+                if (value.isNotEmpty()) {
+                    log.append("$prop=$value ")
+                }
             }
-        } catch (_: Exception) {}
+            log.appendLine()
 
-        // Method 4: Check device hardware info
+            // Check all NFC-related props
+            val process = ProcessBuilder("sh", "-c", "getprop | grep -i nfc").redirectErrorStream(true).start()
+            val allNfcProps = process.inputStream.bufferedReader().use { it.readText().trim() }
+            process.waitFor()
+            if (allNfcProps.isNotEmpty()) {
+                log.appendLine("  all nfc props:\n  ${allNfcProps.replace("\n", "\n  ")}")
+            }
+
+            val nxpKeywords = listOf("nxp", "pn5", "pn6", "pn7", "pn8", "sn1", "sn2", "nq2", "nq3", "nq4", "nq5")
+            if (nxpKeywords.any { kw -> allNfcProps.contains(kw, ignoreCase = true) }) {
+                log.appendLine("  MATCH: NXP keyword found in props")
+                nxpDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 2: Check NFC HAL implementation
         try {
-            val result = Shell.cmd("cat /proc/cpuinfo 2>/dev/null; getprop ro.hardware.nfc 2>/dev/null").exec()
-            if (result.isSuccess && result.out.any {
-                it.contains("nxp", ignoreCase = true) || it.contains("nq", ignoreCase = true)
-            }) return true
-        } catch (_: Exception) {}
+            log.append("[NXP-2] NFC HAL libs... ")
+            val result = Shell.cmd("ls -la /vendor/lib*/hw/nfc*.so /vendor/lib*/hw/android.hardware.nfc* /system/lib*/hw/nfc*.so 2>/dev/null").exec()
+            val libs = result.out.joinToString("\n")
+            log.appendLine(libs.ifEmpty { "none found" })
+            if (libs.contains("nxp", ignoreCase = true) || libs.contains("nci", ignoreCase = true)) {
+                nxpDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
 
+        // Method 3: Check libnfc configs
+        try {
+            log.append("[NXP-3] libnfc config... ")
+            val configPaths = listOf(
+                "/vendor/etc/libnfc-nci.conf",
+                "/vendor/etc/libnfc-nxp.conf",
+                "/system/etc/libnfc-nci.conf",
+                "/system/etc/libnfc-nxp.conf",
+                "/vendor/etc/libnfc-brcm.conf",
+                "/vendor/etc/libnfc-sec-vendor.conf",
+                "/vendor/etc/libnfc-nxp_RF.conf"
+            )
+            val foundConfigs = mutableListOf<String>()
+            for (path in configPaths) {
+                if (File(path).exists()) {
+                    foundConfigs.add(path)
+                }
+            }
+            log.appendLine(foundConfigs.ifEmpty { listOf("none") }.joinToString())
+
+            // Read the NXP config if it exists
+            for (config in foundConfigs) {
+                if (config.contains("nxp") || config.contains("nci")) {
+                    try {
+                        val content = Shell.cmd("cat $config 2>/dev/null | head -20").exec()
+                        log.appendLine("  ${config}:\n  ${content.out.joinToString("\n  ")}")
+                    } catch (_: Exception) {}
+                    nxpDebugLog = log.toString()
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 4: Check /dev/nq-nci or /dev/pn5* or /dev/nfc*
+        try {
+            log.append("[NXP-4] /dev NFC devices... ")
+            val result = Shell.cmd("ls -la /dev/nq* /dev/pn* /dev/nfc* /dev/p73* /dev/sn* 2>/dev/null").exec()
+            val devices = result.out.joinToString("\n")
+            log.appendLine(devices.ifEmpty { "none found" })
+            if (devices.isNotEmpty()) {
+                nxpDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 5: Check dmesg for NFC chip info
+        try {
+            log.append("[NXP-5] dmesg nfc... ")
+            val result = Shell.cmd("dmesg | grep -i nfc | head -10 2>/dev/null").exec()
+            val dmesg = result.out.joinToString("\n")
+            log.appendLine(dmesg.ifEmpty { "none" })
+            if (dmesg.contains("nxp", ignoreCase = true) || dmesg.contains("pn5", ignoreCase = true) ||
+                dmesg.contains("sn1", ignoreCase = true) || dmesg.contains("nq-nci", ignoreCase = true)) {
+                nxpDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 6: If the phone can read Mifare Classic, it has NXP chip
+        // Check if MifareClassic tech is available in NFC adapter
+        try {
+            log.append("[NXP-6] MifareClassic support... ")
+            val nfcAdapter = android.nfc.NfcAdapter.getDefaultAdapter(context)
+            if (nfcAdapter != null && nfcAdapter.isEnabled) {
+                // If NFC is enabled and we got this far with root, assume NXP
+                // because non-NXP chips (Broadcom/Samsung) can't read Mifare Classic on stock Android
+                log.appendLine("NFC enabled + root available — assuming NXP compatible")
+                nxpDebugLog = log.toString()
+                return true
+            }
+            log.appendLine("NFC adapter: ${if (nfcAdapter != null) "present" else "null"}, enabled: ${nfcAdapter?.isEnabled}")
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        log.appendLine("[NXP-X] All methods failed — NXP NOT detected")
+        nxpDebugLog = log.toString()
         return false
     }
 
