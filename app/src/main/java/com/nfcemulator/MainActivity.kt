@@ -3,19 +3,25 @@ package com.nfcemulator
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.lifecycle.lifecycleScope
+import com.nfcemulator.dump.analyzer.DictionaryManager
+import com.nfcemulator.dump.parser.DumpParserFactory
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.nfc.reader.TagReader
-import com.nfcemulator.dump.analyzer.DictionaryManager
+import com.nfcemulator.storage.EncryptedFileManager
+import com.nfcemulator.storage.local.TagDao
 import com.nfcemulator.ui.NfcNavigation
 import com.nfcemulator.ui.theme.NfcEmulatorTheme
+import com.nfcemulator.util.TagMapper
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -24,6 +30,15 @@ class MainActivity : ComponentActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private val tagReader: TagReader by inject()
     private val dictionaryManager: DictionaryManager by inject()
+    private val dumpParserFactory: DumpParserFactory by inject()
+    private val encryptedFileManager: EncryptedFileManager by inject()
+    private val tagDao: TagDao by inject()
+
+    private val importFileLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { importDumpFile(it) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +55,9 @@ class MainActivity : ComponentActivity() {
                 val readProgress by tagReader.progress.collectAsState()
                 NfcNavigation(
                     readProgress = readProgress,
-                    onImportClick = { }
+                    onImportClick = {
+                        importFileLauncher.launch(arrayOf("*/*"))
+                    }
                 )
             }
         }
@@ -69,8 +86,49 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             val keys = dictionaryManager.getAllKeys()
-            tagReader.readTag(tag, keys)
+            val dump = tagReader.readTag(tag, keys)
+            if (dump != null) {
+                // Serialize sectors to raw bytes for storage
+                val rawBytes = dump.sectors.flatMap { sector ->
+                    sector.blocks.flatMap { block -> block.data.toList() }
+                }.toByteArray()
+                val filePath = encryptedFileManager.saveDump(dump.id, rawBytes)
+                val entity = TagMapper.toEntity(dump, filePath)
+                tagDao.insertTag(entity)
+            }
         }
+    }
+
+    private fun importDumpFile(uri: Uri) {
+        lifecycleScope.launch {
+            try {
+                val fileName = getFileName(uri) ?: "unknown.bin"
+                val inputStream = contentResolver.openInputStream(uri) ?: return@launch
+                val dump = dumpParserFactory.parse(inputStream, fileName)
+                inputStream.close()
+
+                // Save encrypted dump
+                val rawData = contentResolver.openInputStream(uri)?.readBytes() ?: return@launch
+                val filePath = encryptedFileManager.saveDump(dump.id, rawData)
+
+                // Save metadata to Room
+                val entity = TagMapper.toEntity(dump, filePath)
+                tagDao.insertTag(entity)
+            } catch (e: Exception) {
+                // Error handling via snackbar or toast would go here
+            }
+        }
+    }
+
+    private fun getFileName(uri: Uri): String? {
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (nameIndex >= 0) return it.getString(nameIndex)
+            }
+        }
+        return uri.lastPathSegment
     }
 
     private fun enableNfcForegroundDispatch() {
