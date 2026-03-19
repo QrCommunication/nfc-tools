@@ -40,4 +40,11 @@ class HomeViewModel(private val tagDao: TagDao) : ViewModel() {
             tagDao.deleteTagById(id)
         }
     }
+
+    fun renameTag(id: String, newName: String) {
+        viewModelScope.launch {
+            val tag = tagDao.getTagById(id) ?: return@launch
+            tagDao.updateTag(tag.copy(name = newName))
+        }
+    }
 }

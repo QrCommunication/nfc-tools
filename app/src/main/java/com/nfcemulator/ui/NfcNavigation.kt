@@ -117,6 +117,22 @@ fun NfcNavigation(
                             }
                         }
                     },
+                    onEmulateTag = { tagId ->
+                        val tag = tags.find { it.id == tagId }
+                        if (tag != null) {
+                            selectedTagForEmulation = tag
+                            navController.navigate(Screen.Emulator.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onEditTag = { tagId ->
+                        navController.navigate(Screen.Editor.route) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onDeleteTag = { tagId -> viewModel.deleteTag(tagId) },
+                    onRenameTag = { tagId, newName -> viewModel.renameTag(tagId, newName) },
                     onAddClick = { navController.navigate(Screen.Reader.route) },
                     onSearchQuery = { viewModel.search(it) }
                 )
