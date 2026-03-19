@@ -4,8 +4,10 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,7 +33,8 @@ fun ReaderScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(NfcColors.Background)
-            .padding(NfcDimensions.Padding),
+            .padding(NfcDimensions.Padding)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -40,7 +43,7 @@ fun ReaderScreen(
             color = NfcColors.Primary
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(48.dp))
 
         NfcPulseAnimation(readProgress)
 
@@ -53,6 +56,18 @@ fun ReaderScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = NfcColors.TextSecondary
                 )
+                Spacer(modifier = Modifier.height(48.dp))
+                OutlinedButton(
+                    onClick = onImportClick,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+                    ),
+                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+                    modifier = Modifier.fillMaxWidth(0.7f)
+                ) {
+                    Text("Import Dump File")
+                }
             }
             is ReadProgress.Reading -> {
                 Text(
@@ -74,6 +89,7 @@ fun ReaderScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = NfcColors.Warning
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "${readProgress.keysTestedCount} keys tested",
                     style = MaterialTheme.typography.bodySmall,
@@ -81,84 +97,12 @@ fun ReaderScreen(
                 )
             }
             is ReadProgress.Complete -> {
-                val dump = readProgress.dump
-                val allKeysFound = dump.foundKeys == dump.totalKeys
-
-                Text(
-                    "Tag read successfully!",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = NfcColors.Secondary
+                CompleteContent(
+                    dump = readProgress.dump,
+                    onSaveTag = onSaveTag,
+                    onReset = onReset,
+                    onCrackKeys = onCrackKeys
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    dump.uidHex,
-                    style = NfcMonoStyles.uid,
-                    color = NfcColors.Secondary
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    dump.type.displayName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = NfcColors.TextSecondary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Keys: ${dump.foundKeys}/${dump.totalKeys} found",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = NfcColors.TextPrimary
-                )
-                if (dump.totalKeys > 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { dump.decryptionProgress },
-                        modifier = Modifier.fillMaxWidth(0.6f),
-                        color = if (allKeysFound) NfcColors.KeyFound else NfcColors.Warning,
-                        trackColor = NfcColors.SurfaceVariant
-                    )
-                }
-                if (!allKeysFound && dump.totalKeys > 0) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Continue cracking remaining keys?",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = NfcColors.TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = { onCrackKeys(dump) },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Warning),
-                        border = ButtonDefaults.outlinedButtonBorder.copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Warning)
-                        ),
-                        shape = RoundedCornerShape(NfcDimensions.CornerRadius)
-                    ) {
-                        Text("Crack Keys")
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { onSaveTag(dump) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NfcColors.Primary,
-                        contentColor = NfcColors.Background
-                    ),
-                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                ) {
-                    Text("Save Tag")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = onReset,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
-                    ),
-                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                ) {
-                    Text("Read Another")
-                }
             }
             is ReadProgress.Error -> {
                 Text(
@@ -166,36 +110,147 @@ fun ReaderScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = NfcColors.Error
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 OutlinedButton(
                     onClick = onReset,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                         brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
                     ),
-                    shape = RoundedCornerShape(NfcDimensions.CornerRadius)
+                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+                    modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
                     Text("Try Again")
                 }
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
 
-        if (readProgress is ReadProgress.Idle) {
-            OutlinedButton(
-                onClick = onImportClick,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
-                ),
-                shape = RoundedCornerShape(NfcDimensions.CornerRadius)
-            ) {
-                Text("Import Dump File")
-            }
+@Composable
+private fun CompleteContent(
+    dump: TagDump,
+    onSaveTag: (TagDump) -> Unit,
+    onReset: () -> Unit,
+    onCrackKeys: (TagDump) -> Unit
+) {
+    val allKeysFound = dump.totalKeys > 0 && dump.foundKeys == dump.totalKeys
 
-            Spacer(modifier = Modifier.height(16.dp))
+    Text(
+        "Tag read successfully!",
+        style = MaterialTheme.typography.titleMedium,
+        color = NfcColors.Secondary
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // Tag info card
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .border(NfcDimensions.BorderWidth, NfcColors.Secondary, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .padding(NfcDimensions.CardPadding),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            dump.uidHex,
+            style = NfcMonoStyles.uid,
+            color = NfcColors.Secondary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            dump.type.displayName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = NfcColors.TextSecondary
+        )
+        if (dump.sectors.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "${dump.sectors.size} sectors",
+                style = MaterialTheme.typography.bodySmall,
+                color = NfcColors.TextSecondary
+            )
         }
+        if (dump.totalKeys > 0) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Keys",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NfcColors.TextSecondary
+                )
+                Text(
+                    "${dump.foundKeys}/${dump.totalKeys}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (allKeysFound) NfcColors.KeyFound else NfcColors.Warning
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            LinearProgressIndicator(
+                progress = { dump.decryptionProgress },
+                modifier = Modifier.fillMaxWidth().height(6.dp),
+                color = if (allKeysFound) NfcColors.KeyFound else NfcColors.Warning,
+                trackColor = NfcColors.SurfaceVariant
+            )
+        }
+    }
+
+    // Crack keys button (if keys missing)
+    if (!allKeysFound && dump.totalKeys > 0) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            "${dump.totalKeys - dump.foundKeys} keys remaining — try extended dictionaries?",
+            style = MaterialTheme.typography.bodySmall,
+            color = NfcColors.TextSecondary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { onCrackKeys(dump) },
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Warning),
+            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Warning)
+            ),
+            shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+            modifier = Modifier.fillMaxWidth(0.7f)
+        ) {
+            Text("Crack Remaining Keys")
+        }
+    }
+
+    // Action buttons
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Button(
+        onClick = { onSaveTag(dump) },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = NfcColors.Primary,
+            contentColor = NfcColors.Background
+        ),
+        shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+        modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
+    ) {
+        Text("Save Tag", style = MaterialTheme.typography.titleMedium)
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    OutlinedButton(
+        onClick = onReset,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+            brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+        ),
+        shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+        modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
+    ) {
+        Text("Read Another", style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -235,11 +290,11 @@ private fun NfcPulseAnimation(readProgress: ReadProgress) {
         else -> "NFC"
     }
 
-    Box(contentAlignment = Alignment.Center) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.height(120.dp)) {
         if (isActive) {
             Box(
                 modifier = Modifier
-                    .size(NfcDimensions.PulseMaxSize)
+                    .size(120.dp)
                     .scale(scale)
                     .alpha(alpha)
                     .border(2.dp, color, CircleShape)
