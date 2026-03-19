@@ -1,6 +1,5 @@
 package com.nfcemulator.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -25,7 +24,6 @@ import com.nfcemulator.ui.home.HomeScreen
 import com.nfcemulator.ui.home.HomeViewModel
 import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.reader.ReaderScreen
-import androidx.compose.runtime.LaunchedEffect
 import com.nfcemulator.ui.settings.SettingsScreen
 import com.nfcemulator.ui.settings.SettingsViewModel
 import com.nfcemulator.ui.theme.NfcColors
@@ -43,15 +41,29 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 @Composable
 fun NfcNavigation(
     readProgress: ReadProgress,
+    isEmulating: Boolean,
+    emulationMode: String,
     onImportClick: () -> Unit,
     onSaveTag: (TagDump) -> Unit,
     onResetReader: () -> Unit,
-    onCrackKeys: (TagDump) -> Unit
+    onCrackKeys: (TagDump) -> Unit,
+    onStartEmulation: (TagUiModel) -> Unit,
+    onStopEmulation: () -> Unit
 ) {
     val navController = rememberNavController()
     val screens = listOf(Screen.Home, Screen.Reader, Screen.Emulator, Screen.Editor, Screen.Settings)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    var selectedTagForEmulation by remember { mutableStateOf<TagUiModel?>(null) }
+    var selectedDumpForEditor by remember { mutableStateOf<TagDump?>(null) }
+
+    // When a tag is read successfully, keep it for editor
+    LaunchedEffect(readProgress) {
+        if (readProgress is ReadProgress.Complete) {
+            selectedDumpForEditor = readProgress.dump
+        }
+    }
 
     Scaffold(
         containerColor = NfcColors.Background,
@@ -96,7 +108,15 @@ fun NfcNavigation(
                 val tags by viewModel.tags.collectAsState()
                 HomeScreen(
                     tags = tags,
-                    onTagClick = { },
+                    onTagClick = { tagId ->
+                        val tag = tags.find { it.id == tagId }
+                        if (tag != null) {
+                            selectedTagForEmulation = tag
+                            navController.navigate(Screen.Emulator.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
                     onAddClick = { navController.navigate(Screen.Reader.route) },
                     onSearchQuery = { viewModel.search(it) }
                 )
@@ -112,16 +132,22 @@ fun NfcNavigation(
             }
             composable(Screen.Emulator.route) {
                 EmulatorScreen(
-                    selectedTag = null,
-                    isEmulating = false,
-                    emulationMode = "HCE Standard",
-                    onStartEmulation = { },
-                    onStopEmulation = { },
-                    onSelectTag = { navController.navigate(Screen.Home.route) }
+                    selectedTag = selectedTagForEmulation,
+                    isEmulating = isEmulating,
+                    emulationMode = emulationMode,
+                    onStartEmulation = {
+                        selectedTagForEmulation?.let { onStartEmulation(it) }
+                    },
+                    onStopEmulation = onStopEmulation,
+                    onSelectTag = {
+                        navController.navigate(Screen.Home.route) {
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
             composable(Screen.Editor.route) {
-                EditorScreen(dump = null)
+                EditorScreen(dump = selectedDumpForEditor)
             }
             composable(Screen.Settings.route) {
                 val viewModel: SettingsViewModel = koinViewModel()

@@ -16,14 +16,19 @@ import androidx.lifecycle.lifecycleScope
 import com.nfcemulator.dump.analyzer.DictionaryManager
 import com.nfcemulator.dump.analyzer.KeyCracker
 import com.nfcemulator.dump.model.TagDump
+import com.nfcemulator.dump.model.TagType
+import com.nfcemulator.dump.model.DumpFormat
 import com.nfcemulator.dump.parser.DumpParserFactory
+import com.nfcemulator.nfc.hal.NfcEmulatorHal
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.nfc.reader.TagReader
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.TagDao
 import com.nfcemulator.ui.NfcNavigation
+import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.theme.NfcEmulatorTheme
 import com.nfcemulator.util.TagMapper
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -36,8 +41,11 @@ class MainActivity : ComponentActivity() {
     private val dumpParserFactory: DumpParserFactory by inject()
     private val encryptedFileManager: EncryptedFileManager by inject()
     private val tagDao: TagDao by inject()
+    private val nfcHal: NfcEmulatorHal by inject()
 
     private var lastReadTag: Tag? = null
+    private val _isEmulating = MutableStateFlow(false)
+    private val _emulationMode = MutableStateFlow("HCE Standard (Limited)")
 
     private val importFileLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -53,19 +61,28 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             dictionaryManager.loadDictionaries()
+            val capabilities = nfcHal.getCapabilities()
+            _emulationMode.value = capabilities.emulationMode.displayName
         }
 
         setContent {
             NfcEmulatorTheme {
                 val readProgress by tagReader.progress.collectAsState()
+                val isEmulating by nfcHal.isEmulating.collectAsState()
+                val emulationMode by _emulationMode.collectAsState()
+
                 NfcNavigation(
                     readProgress = readProgress,
+                    isEmulating = isEmulating,
+                    emulationMode = emulationMode,
                     onImportClick = {
                         importFileLauncher.launch(arrayOf("*/*"))
                     },
                     onSaveTag = { dump -> saveTag(dump) },
                     onResetReader = { tagReader.reset() },
-                    onCrackKeys = { dump -> crackRemainingKeys(dump) }
+                    onCrackKeys = { dump -> crackRemainingKeys(dump) },
+                    onStartEmulation = { tagUiModel -> startEmulation(tagUiModel) },
+                    onStopEmulation = { stopEmulation() }
                 )
             }
         }
@@ -90,7 +107,8 @@ class MainActivity : ComponentActivity() {
 
     private fun handleNfcIntent(intent: Intent?) {
         if (intent == null) return
-        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java) ?: return
+        @Suppress("DEPRECATION")
+        val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
         lastReadTag = tag
 
         lifecycleScope.launch {
@@ -119,6 +137,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun startEmulation(tagUiModel: TagUiModel) {
+        lifecycleScope.launch {
+            val rawData = encryptedFileManager.loadDump(tagUiModel.id)
+            if (rawData != null) {
+                val dump = TagDump(
+                    id = tagUiModel.id,
+                    name = tagUiModel.name,
+                    type = TagType.entries.find { it.displayName == tagUiModel.type } ?: TagType.UNKNOWN,
+                    uid = tagUiModel.uid.split(":").map { it.toInt(16).toByte() }.toByteArray(),
+                    rawData = rawData,
+                    sourceFormat = DumpFormat.JSON
+                )
+                nfcHal.startEmulation(dump)
+            }
+        }
+    }
+
+    private fun stopEmulation() {
+        lifecycleScope.launch {
+            nfcHal.stopEmulation()
+        }
+    }
+
     private fun importDumpFile(uri: Uri) {
         lifecycleScope.launch {
             try {
@@ -127,15 +168,12 @@ class MainActivity : ComponentActivity() {
                 val dump = dumpParserFactory.parse(inputStream, fileName)
                 inputStream.close()
 
-                // Save encrypted dump
                 val rawData = contentResolver.openInputStream(uri)?.readBytes() ?: return@launch
                 val filePath = encryptedFileManager.saveDump(dump.id, rawData)
 
-                // Save metadata to Room
                 val entity = TagMapper.toEntity(dump, filePath)
                 tagDao.insertTag(entity)
-            } catch (e: Exception) {
-                // Error handling via snackbar or toast would go here
+            } catch (_: Exception) {
             }
         }
     }
