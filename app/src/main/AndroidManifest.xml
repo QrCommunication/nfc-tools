@@ -17,6 +17,22 @@
         android:name="android.hardware.nfc.hce"
         android:required="false" />
 
+    <!-- Package visibility for root app detection (Android 11+) -->
+    <queries>
+        <package android:name="com.topjohnwu.magisk" />
+        <package android:name="io.github.vvb2060.magisk" />
+        <package android:name="com.fox2code.mmm" />
+        <package android:name="eu.chainfire.supersu" />
+        <package android:name="com.noshufou.android.su" />
+        <package android:name="com.koushikdutta.superuser" />
+        <package android:name="me.phh.superuser" />
+        <package android:name="com.topjohnwu.magisk.lite" />
+        <package android:name="de.robv.android.xposed.installer" />
+        <package android:name="org.lsposed.manager" />
+        <package android:name="me.weishu.kernelsu" />
+        <package android:name="com.riaru.kernelsu" />
+    </queries>
+
     <application
         android:name=".NfcEmulatorApp"
         android:allowBackup="true"

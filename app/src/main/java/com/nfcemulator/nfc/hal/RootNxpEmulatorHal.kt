@@ -98,54 +98,36 @@ class RootNxpEmulatorHal(
     }
 
     private fun checkRoot(): Boolean {
-        // Method 1: libsu Shell check
+        // Method 1: Actually request a root shell and run a command
+        // This is the most reliable method — it triggers the Magisk/SuperSU prompt
+        try {
+            val result = Shell.cmd("id").exec()
+            if (result.isSuccess) {
+                val output = result.out.joinToString()
+                if (output.contains("uid=0") || output.contains("root")) {
+                    return true
+                }
+            }
+        } catch (_: Exception) {}
+
+        // Method 2: libsu cached check (works after method 1 has been granted)
         try {
             val shellResult = Shell.isAppGrantedRoot()
             if (shellResult == true) return true
         } catch (_: Exception) {}
 
-        // Method 2: Check su binary exists
-        val suPaths = listOf(
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/sbin/su",
-            "/data/local/xbin/su",
-            "/data/local/bin/su",
-            "/system/sd/xbin/su",
-            "/su/bin/su",
-            "/data/adb/su",
-            "/apex/com.android.runtime/bin/su"
-        )
-        for (path in suPaths) {
-            if (File(path).exists()) return true
-        }
-
-        // Method 3: Try executing su
+        // Method 3: Try executing su directly with timeout
         try {
-            val process = Runtime.getRuntime().exec("su -c id")
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
+            val reader = process.inputStream.bufferedReader()
+            val output = reader.readText()
             val exitCode = process.waitFor()
-            if (exitCode == 0) return true
-        } catch (_: Exception) {}
-
-        // Method 4: Check Magisk
-        try {
-            val magiskPaths = listOf(
-                "/data/adb/magisk",
-                "/sbin/.magisk",
-                "/data/adb/modules"
-            )
-            for (path in magiskPaths) {
-                if (File(path).exists()) return true
+            if (exitCode == 0 && (output.contains("uid=0") || output.contains("root"))) {
+                return true
             }
         } catch (_: Exception) {}
 
-        // Method 5: Check build tags
-        try {
-            val buildTags = android.os.Build.TAGS
-            if (buildTags != null && buildTags.contains("test-keys")) return true
-        } catch (_: Exception) {}
-
-        // Method 6: Check common root apps
+        // Method 4: Check common root app packages (needs <queries> in manifest)
         try {
             val pm = context.packageManager
             val rootPackages = listOf(
@@ -155,10 +137,12 @@ class RootNxpEmulatorHal(
                 "eu.chainfire.supersu",
                 "com.noshufou.android.su",
                 "com.koushikdutta.superuser",
-                "com.zachspong.temprootremovejb",
-                "com.ramdroid.appquarantine",
                 "me.phh.superuser",
-                "com.topjohnwu.magisk.lite"
+                "com.topjohnwu.magisk.lite",
+                "de.robv.android.xposed.installer",
+                "org.lsposed.manager",
+                "me.weishu.kernelsu",
+                "com.riaru.kernelsu"
             )
             for (pkg in rootPackages) {
                 try {
@@ -166,6 +150,31 @@ class RootNxpEmulatorHal(
                     return true
                 } catch (_: Exception) {}
             }
+        } catch (_: Exception) {}
+
+        // Method 5: Check su binary in known paths
+        val suPaths = listOf(
+            "/system/bin/su", "/system/xbin/su", "/sbin/su",
+            "/data/local/xbin/su", "/data/local/bin/su",
+            "/su/bin/su", "/data/adb/su"
+        )
+        for (path in suPaths) {
+            try {
+                if (File(path).exists()) return true
+            } catch (_: Exception) {}
+        }
+
+        // Method 6: Check build tags
+        try {
+            val buildTags = android.os.Build.TAGS
+            if (buildTags != null && buildTags.contains("test-keys")) return true
+        } catch (_: Exception) {}
+
+        // Method 7: Check system properties for ro.debuggable or ro.secure
+        try {
+            val process = Runtime.getRuntime().exec("getprop ro.debuggable")
+            val output = process.inputStream.bufferedReader().readText().trim()
+            if (output == "1") return true
         } catch (_: Exception) {}
 
         return false

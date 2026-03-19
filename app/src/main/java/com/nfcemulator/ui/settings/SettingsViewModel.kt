@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nfcemulator.dump.analyzer.DictionaryManager
 import com.nfcemulator.nfc.hal.NfcEmulatorHal
+import com.nfcemulator.nfc.hal.RootNxpEmulatorHal
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.TagDao
 import kotlinx.coroutines.flow.*
@@ -34,6 +35,8 @@ class SettingsViewModel(
 
     fun loadStats() {
         viewModelScope.launch {
+            // Invalidate cache to force fresh root/NXP check
+            (nfcHal as? RootNxpEmulatorHal)?.invalidateCache()
             val capabilities = nfcHal.getCapabilities()
             val tagCount = tagDao.getTagCount()
             val storageBytes = encryptedFileManager.getDumpsSize()
