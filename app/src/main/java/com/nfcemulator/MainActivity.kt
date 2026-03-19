@@ -14,6 +14,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.lifecycle.lifecycleScope
 import com.nfcemulator.dump.analyzer.DictionaryManager
+import com.nfcemulator.dump.analyzer.KeyCracker
+import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.dump.parser.DumpParserFactory
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.nfc.reader.TagReader
@@ -30,9 +32,12 @@ class MainActivity : ComponentActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private val tagReader: TagReader by inject()
     private val dictionaryManager: DictionaryManager by inject()
+    private val keyCracker: KeyCracker by inject()
     private val dumpParserFactory: DumpParserFactory by inject()
     private val encryptedFileManager: EncryptedFileManager by inject()
     private val tagDao: TagDao by inject()
+
+    private var lastReadTag: Tag? = null
 
     private val importFileLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -57,7 +62,10 @@ class MainActivity : ComponentActivity() {
                     readProgress = readProgress,
                     onImportClick = {
                         importFileLauncher.launch(arrayOf("*/*"))
-                    }
+                    },
+                    onSaveTag = { dump -> saveTag(dump) },
+                    onResetReader = { tagReader.reset() },
+                    onCrackKeys = { dump -> crackRemainingKeys(dump) }
                 )
             }
         }
@@ -83,19 +91,31 @@ class MainActivity : ComponentActivity() {
     private fun handleNfcIntent(intent: Intent?) {
         if (intent == null) return
         val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java) ?: return
+        lastReadTag = tag
 
         lifecycleScope.launch {
             val keys = dictionaryManager.getAllKeys()
-            val dump = tagReader.readTag(tag, keys)
-            if (dump != null) {
-                // Serialize sectors to raw bytes for storage
-                val rawBytes = dump.sectors.flatMap { sector ->
-                    sector.blocks.flatMap { block -> block.data.toList() }
-                }.toByteArray()
-                val filePath = encryptedFileManager.saveDump(dump.id, rawBytes)
-                val entity = TagMapper.toEntity(dump, filePath)
-                tagDao.insertTag(entity)
-            }
+            tagReader.readTag(tag, keys)
+        }
+    }
+
+    private fun saveTag(dump: TagDump) {
+        lifecycleScope.launch {
+            val rawBytes = dump.sectors.flatMap { sector ->
+                sector.blocks.flatMap { block -> block.data.toList() }
+            }.toByteArray()
+            val filePath = encryptedFileManager.saveDump(dump.id, rawBytes)
+            val entity = TagMapper.toEntity(dump, filePath)
+            tagDao.insertTag(entity)
+        }
+    }
+
+    private fun crackRemainingKeys(dump: TagDump) {
+        val tag = lastReadTag ?: return
+        lifecycleScope.launch {
+            tagReader.reset()
+            val allKeys = dictionaryManager.getAllKeys()
+            tagReader.readTag(tag, allKeys)
         }
     }
 

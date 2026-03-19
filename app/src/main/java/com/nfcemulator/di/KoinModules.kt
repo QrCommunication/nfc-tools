@@ -12,9 +12,10 @@ import com.nfcemulator.storage.CryptoManager
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.AppDatabase
 import com.nfcemulator.ui.home.HomeViewModel
+import com.nfcemulator.ui.settings.SettingsViewModel
 import com.topjohnwu.superuser.Shell
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.dsl.viewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val databaseModule = module {
@@ -47,6 +48,7 @@ val nfcModule = module {
 
 val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
 }
 
 val allModules = listOf(databaseModule, storageModule, nfcModule, viewModelModule)

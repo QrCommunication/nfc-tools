@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.ui.editor.EditorScreen
 import com.nfcemulator.ui.emulator.EmulatorScreen
@@ -24,7 +25,9 @@ import com.nfcemulator.ui.home.HomeScreen
 import com.nfcemulator.ui.home.HomeViewModel
 import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.reader.ReaderScreen
+import androidx.compose.runtime.LaunchedEffect
 import com.nfcemulator.ui.settings.SettingsScreen
+import com.nfcemulator.ui.settings.SettingsViewModel
 import com.nfcemulator.ui.theme.NfcColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import org.koin.androidx.compose.koinViewModel
@@ -40,7 +43,10 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 @Composable
 fun NfcNavigation(
     readProgress: ReadProgress,
-    onImportClick: () -> Unit
+    onImportClick: () -> Unit,
+    onSaveTag: (TagDump) -> Unit,
+    onResetReader: () -> Unit,
+    onCrackKeys: (TagDump) -> Unit
 ) {
     val navController = rememberNavController()
     val screens = listOf(Screen.Home, Screen.Reader, Screen.Emulator, Screen.Editor, Screen.Settings)
@@ -96,7 +102,13 @@ fun NfcNavigation(
                 )
             }
             composable(Screen.Reader.route) {
-                ReaderScreen(readProgress = readProgress, onImportClick = onImportClick)
+                ReaderScreen(
+                    readProgress = readProgress,
+                    onImportClick = onImportClick,
+                    onSaveTag = onSaveTag,
+                    onReset = onResetReader,
+                    onCrackKeys = onCrackKeys
+                )
             }
             composable(Screen.Emulator.route) {
                 EmulatorScreen(
@@ -112,13 +124,16 @@ fun NfcNavigation(
                 EditorScreen(dump = null)
             }
             composable(Screen.Settings.route) {
+                val viewModel: SettingsViewModel = koinViewModel()
+                val state by viewModel.uiState.collectAsState()
+                LaunchedEffect(Unit) { viewModel.loadStats() }
                 SettingsScreen(
-                    hasRoot = false,
-                    hasNxpChipset = false,
-                    emulationMode = "HCE Standard (Limited)",
-                    totalKeys = 0,
-                    totalTags = 0,
-                    storageSize = "0 KB",
+                    hasRoot = state.hasRoot,
+                    hasNxpChipset = state.hasNxpChipset,
+                    emulationMode = state.emulationMode,
+                    totalKeys = state.totalKeys,
+                    totalTags = state.totalTags,
+                    storageSize = state.storageSize,
                     onExportBackup = { },
                     onImportBackup = { }
                 )
