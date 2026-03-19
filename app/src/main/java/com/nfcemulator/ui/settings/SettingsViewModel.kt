@@ -16,7 +16,8 @@ data class SettingsUiState(
     val emulationMode: String = "Checking...",
     val totalKeys: Int = 0,
     val totalTags: Int = 0,
-    val storageSize: String = "0 KB"
+    val storageSize: String = "0 KB",
+    val rootDebugLog: String = ""
 )
 
 class SettingsViewModel(
@@ -42,13 +43,16 @@ class SettingsViewModel(
             val storageBytes = encryptedFileManager.getDumpsSize()
             val totalKeys = dictionaryManager.getTotalKeyCount()
 
+            val debugLog = (nfcHal as? RootNxpEmulatorHal)?.rootDebugLog ?: ""
+
             _uiState.value = SettingsUiState(
                 hasRoot = capabilities.hasRoot,
                 hasNxpChipset = capabilities.hasNxpChipset,
                 emulationMode = capabilities.emulationMode.displayName,
                 totalKeys = if (totalKeys > 0) totalKeys else dictionaryManager.getDefaultKeys().size,
                 totalTags = tagCount,
-                storageSize = formatSize(storageBytes)
+                storageSize = formatSize(storageBytes),
+                rootDebugLog = debugLog
             )
         }
     }

@@ -21,6 +21,7 @@ fun SettingsScreen(
     totalKeys: Int,
     totalTags: Int,
     storageSize: String,
+    rootDebugLog: String = "",
     onExportBackup: () -> Unit,
     onImportBackup: () -> Unit
 ) {
@@ -77,6 +78,20 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Import Backup")
+            }
+        }
+
+        if (rootDebugLog.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            SettingsSection("Root Detection Log") {
+                Text(
+                    rootDebugLog,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = androidx.compose.ui.unit.TextUnit(10f, androidx.compose.ui.unit.TextUnitType.Sp)
+                    ),
+                    color = NfcColors.TextSecondary
+                )
             }
         }
 

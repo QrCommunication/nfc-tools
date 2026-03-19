@@ -22,6 +22,8 @@ class RootNxpEmulatorHal(
 
     private var currentDump: TagDump? = null
     private var cachedCapabilities: EmulationCapabilities? = null
+    var rootDebugLog: String = ""
+        private set
 
     override suspend fun getCapabilities(): EmulationCapabilities {
         cachedCapabilities?.let { return it }
@@ -98,91 +100,184 @@ class RootNxpEmulatorHal(
     }
 
     private fun checkRoot(): Boolean {
-        // Method 1: Direct Runtime.exec("su") — THIS triggers the Magisk prompt
-        // libsu Shell.cmd() does NOT reliably trigger it if shell init failed
+        val log = StringBuilder()
+
+        // Method 1: libsu — get or create shell synchronously (triggers Magisk prompt)
         try {
-            val process = ProcessBuilder("su", "-c", "id")
-                .redirectErrorStream(true)
-                .start()
-            val output = process.inputStream.bufferedReader().use { it.readText() }
-            val exited = process.waitFor()
-            if (exited == 0 && (output.contains("uid=0") || output.contains("root"))) {
+            log.append("[1] Shell.getShell()... ")
+            val shell = Shell.getShell()
+            val isRoot = shell.isRoot
+            log.appendLine("isRoot=$isRoot, status=${shell.status}")
+            if (isRoot) {
+                rootDebugLog = log.toString()
                 return true
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
 
-        // Method 2: Try "which su" — doesn't need root permission, just checks if su exists
+        // Method 2: libsu isAppGrantedRoot
         try {
-            val process = ProcessBuilder("which", "su")
-                .redirectErrorStream(true)
-                .start()
-            val output = process.inputStream.bufferedReader().use { it.readText().trim() }
-            val exited = process.waitFor()
-            if (exited == 0 && output.isNotEmpty() && output.startsWith("/")) {
-                return true
-            }
-        } catch (_: Exception) {}
-
-        // Method 3: libsu check (works if shell was already initialized with root)
-        try {
+            log.append("[2] Shell.isAppGrantedRoot()... ")
             val result = Shell.isAppGrantedRoot()
-            if (result == true) return true
-        } catch (_: Exception) {}
+            log.appendLine("result=$result")
+            if (result == true) {
+                rootDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
 
-        // Method 4: Check root app packages (needs <queries> in manifest for Android 11+)
+        // Method 3: ProcessBuilder su with full paths
+        val suPaths = listOf("su", "/sbin/su", "/system/bin/su", "/system/xbin/su",
+            "/data/local/xbin/su", "/data/local/bin/su", "/su/bin/su",
+            "/data/adb/magisk/su", "/debug_ramdisk/su")
+        for (suPath in suPaths) {
+            try {
+                log.append("[3] ProcessBuilder($suPath -c id)... ")
+                val process = ProcessBuilder(suPath, "-c", "id")
+                    .redirectErrorStream(true)
+                    .start()
+                val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+                val exited = process.waitFor()
+                log.appendLine("exit=$exited, out=${output.take(80)}")
+                if (exited == 0 && (output.contains("uid=0") || output.contains("root"))) {
+                    rootDebugLog = log.toString()
+                    return true
+                }
+            } catch (e: Exception) {
+                log.appendLine("ERROR: ${e.message}")
+            }
+        }
+
+        // Method 4: which su / type su
         try {
+            log.append("[4] which su... ")
+            val process = ProcessBuilder("which", "su").redirectErrorStream(true).start()
+            val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+            process.waitFor()
+            log.appendLine("output='$output'")
+            if (output.isNotEmpty() && !output.contains("not found")) {
+                rootDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 5: Check Magisk package (with hidden app support)
+        try {
+            log.append("[5] Package check... ")
             val pm = context.packageManager
             val rootPackages = listOf(
-                "com.topjohnwu.magisk",
-                "io.github.vvb2060.magisk",
-                "com.fox2code.mmm",
-                "eu.chainfire.supersu",
-                "com.noshufou.android.su",
-                "com.koushikdutta.superuser",
-                "me.phh.superuser",
-                "com.topjohnwu.magisk.lite",
-                "de.robv.android.xposed.installer",
-                "org.lsposed.manager",
-                "me.weishu.kernelsu",
-                "com.riaru.kernelsu"
+                "com.topjohnwu.magisk", "io.github.vvb2060.magisk",
+                "com.fox2code.mmm", "eu.chainfire.supersu",
+                "me.phh.superuser", "me.weishu.kernelsu",
+                "com.riaru.kernelsu", "org.lsposed.manager"
             )
+            val found = mutableListOf<String>()
             for (pkg in rootPackages) {
                 try {
                     @Suppress("DEPRECATION")
                     pm.getPackageInfo(pkg, 0)
-                    return true
+                    found.add(pkg)
                 } catch (_: Exception) {}
             }
-        } catch (_: Exception) {}
+            log.appendLine("found=${found.ifEmpty { "none" }}")
 
-        // Method 5: Check if /system/app/Superuser.apk exists
-        try {
-            val suApkPaths = listOf(
-                "/system/app/Superuser.apk",
-                "/system/app/Superuser/Superuser.apk",
-                "/system/app/SuperSU/SuperSU.apk"
-            )
-            for (path in suApkPaths) {
-                if (File(path).exists()) return true
+            // Also check all installed packages for magisk in name
+            @Suppress("DEPRECATION")
+            val allPackages = pm.getInstalledPackages(0)
+            val magiskLike = allPackages.filter {
+                it.packageName.contains("magisk", ignoreCase = true) ||
+                it.packageName.contains("supersu", ignoreCase = true) ||
+                it.packageName.contains("superuser", ignoreCase = true) ||
+                it.packageName.contains("kernelsu", ignoreCase = true)
+            }.map { it.packageName }
+            if (magiskLike.isNotEmpty()) {
+                log.appendLine("  magisk-like packages: $magiskLike")
             }
-        } catch (_: Exception) {}
 
-        // Method 6: Check build tags
+            if (found.isNotEmpty() || magiskLike.isNotEmpty()) {
+                rootDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 6: Check /proc/self/mountinfo for magisk
         try {
-            val buildTags = android.os.Build.TAGS
-            if (buildTags != null && buildTags.contains("test-keys")) return true
-        } catch (_: Exception) {}
+            log.append("[6] /proc/self/mountinfo... ")
+            val mountInfo = File("/proc/self/mountinfo").readText()
+            val hasMagisk = mountInfo.contains("magisk", ignoreCase = true)
+            log.appendLine("hasMagisk=$hasMagisk")
+            if (hasMagisk) {
+                rootDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
 
-        // Method 7: Check ro.debuggable
+        // Method 7: Check /proc/self/mounts for magisk tmpfs
         try {
-            val process = ProcessBuilder("getprop", "ro.debuggable")
-                .redirectErrorStream(true)
-                .start()
-            val output = process.inputStream.bufferedReader().use { it.readText().trim() }
-            process.waitFor()
-            if (output == "1") return true
-        } catch (_: Exception) {}
+            log.append("[7] /proc/self/mounts... ")
+            val mounts = File("/proc/self/mounts").readText()
+            val hasMagisk = mounts.contains("magisk", ignoreCase = true) ||
+                mounts.contains("/sbin", ignoreCase = true)
+            log.appendLine("hasMagisk=$hasMagisk")
+            if (hasMagisk) {
+                rootDebugLog = log.toString()
+                return true
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
 
+        // Method 8: env PATH and try each directory
+        try {
+            log.append("[8] PATH check... ")
+            val path = System.getenv("PATH") ?: ""
+            log.appendLine("PATH=$path")
+            for (dir in path.split(":")) {
+                val suFile = File(dir, "su")
+                if (suFile.exists()) {
+                    log.appendLine("  found su at: ${suFile.absolutePath}")
+                    rootDebugLog = log.toString()
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        // Method 9: getprop checks
+        try {
+            log.append("[9] getprop... ")
+            val props = mapOf(
+                "ro.debuggable" to "1",
+                "ro.secure" to "0",
+                "service.bootanim.exit" to "1"
+            )
+            for ((prop, expected) in props) {
+                val process = ProcessBuilder("getprop", prop).redirectErrorStream(true).start()
+                val value = process.inputStream.bufferedReader().use { it.readText().trim() }
+                process.waitFor()
+                log.append("$prop=$value ")
+                if (value == expected && prop != "service.bootanim.exit") {
+                    rootDebugLog = log.toString()
+                    return true
+                }
+            }
+            log.appendLine()
+        } catch (e: Exception) {
+            log.appendLine("ERROR: ${e.message}")
+        }
+
+        log.appendLine("[X] All methods failed — root NOT detected")
+        rootDebugLog = log.toString()
         return false
     }
 

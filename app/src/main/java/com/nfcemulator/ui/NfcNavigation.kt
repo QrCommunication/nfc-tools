@@ -176,6 +176,7 @@ fun NfcNavigation(
                     totalKeys = state.totalKeys,
                     totalTags = state.totalTags,
                     storageSize = state.storageSize,
+                    rootDebugLog = state.rootDebugLog,
                     onExportBackup = { },
                     onImportBackup = { }
                 )
