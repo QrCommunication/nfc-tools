@@ -77,6 +77,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var isDarkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", true)) }
+            var currentLanguage by remember {
+                mutableStateOf(prefs.getString("language", java.util.Locale.getDefault().language) ?: "en")
+            }
 
             NfcEmulatorTheme(darkTheme = isDarkMode) {
                 val readProgress by tagReader.progress.collectAsState()
@@ -93,6 +96,18 @@ class MainActivity : ComponentActivity() {
                     onToggleDarkMode = {
                         isDarkMode = !isDarkMode
                         prefs.edit().putBoolean("dark_mode", isDarkMode).apply()
+                    },
+                    currentLanguage = currentLanguage,
+                    onSetLanguage = { lang ->
+                        currentLanguage = lang
+                        prefs.edit().putString("language", lang).apply()
+                        val locale = java.util.Locale(lang)
+                        java.util.Locale.setDefault(locale)
+                        val config = resources.configuration
+                        config.setLocale(locale)
+                        @Suppress("DEPRECATION")
+                        resources.updateConfiguration(config, resources.displayMetrics)
+                        recreate()
                     }
                 )
             }

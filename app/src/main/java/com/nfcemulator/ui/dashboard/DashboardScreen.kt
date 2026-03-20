@@ -16,7 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 
@@ -51,7 +53,7 @@ fun DashboardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("NFC Emulator", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
                 Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
             }
             IconButton(onClick = onSettings) {
@@ -69,19 +71,19 @@ fun DashboardScreen(
             KpiCard(
                 modifier = Modifier.weight(1f),
                 value = stats.totalTags.toString(),
-                label = "Tags",
+                label = stringResource(R.string.total_tags),
                 color = LocalAppColors.current.Primary
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 value = if (stats.totalKeys > 1000) "${stats.totalKeys / 1000}K+" else stats.totalKeys.toString(),
-                label = "Keys",
+                label = stringResource(R.string.total_keys),
                 color = LocalAppColors.current.Secondary
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 value = stats.storageUsed,
-                label = "Storage",
+                label = stringResource(R.string.storage),
                 color = LocalAppColors.current.Accent
             )
         }
@@ -121,7 +123,7 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         // Quick Actions
-        Text("Quick Actions", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
+        Text(stringResource(R.string.quick_actions), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -132,21 +134,21 @@ fun DashboardScreen(
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.Search,
-                label = "Read Tag",
+                label = stringResource(R.string.read_tag),
                 color = LocalAppColors.current.Primary,
                 onClick = onReadTag
             )
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.Add,
-                label = "Import",
+                label = stringResource(R.string.import_file),
                 color = LocalAppColors.current.Secondary,
                 onClick = onImportFile
             )
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Outlined.Edit,
-                label = "Write",
+                label = stringResource(R.string.write_card),
                 color = LocalAppColors.current.Accent,
                 onClick = onWriteCard
             )
@@ -162,7 +164,7 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("My Tags", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
+            Text(stringResource(R.string.my_tags), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("View all", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Primary)
                 Spacer(modifier = Modifier.width(4.dp))
@@ -187,8 +189,8 @@ fun DashboardScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No tags yet", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
-                    Text("Read a tag to get started", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
+                    Text(stringResource(R.string.no_tags_saved), style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
+                    Text(stringResource(R.string.no_tags_hint), style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
                 }
             }
         }

@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
@@ -35,7 +37,7 @@ fun EmulatorScreen(
             .padding(NfcDimensions.Padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Emulate", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
+        Text(stringResource(R.string.emulate_title), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -87,7 +89,7 @@ fun EmulatorScreen(
                 modifier = Modifier.size(120.dp)
             ) {
                 Text(
-                    text = if (isEmulating) "STOP" else "START",
+                    text = if (isEmulating) stringResource(R.string.stop) else stringResource(R.string.start),
                     style = MaterialTheme.typography.titleLarge,
                     color = LocalAppColors.current.Background
                 )
@@ -131,7 +133,7 @@ fun EmulatorScreen(
                 Text(writeProgress, style = MaterialTheme.typography.bodySmall, color = wpColor)
             }
         } else {
-            Text("No tag selected", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
+            Text(stringResource(R.string.no_tag_selected), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
                 onClick = onSelectTag,
@@ -140,7 +142,7 @@ fun EmulatorScreen(
                     brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
                 )
             ) {
-                Text("Select a tag")
+                Text(stringResource(R.string.select_a_tag))
             }
         }
 

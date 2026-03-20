@@ -72,7 +72,9 @@ fun NfcNavigation(
     onResetReader: () -> Unit,
     onCrackKeys: (TagDump) -> Unit,
     isDarkMode: Boolean,
-    onToggleDarkMode: () -> Unit
+    onToggleDarkMode: () -> Unit,
+    currentLanguage: String,
+    onSetLanguage: (String) -> Unit
 ) {
     var showSplash by remember { mutableStateOf(true) }
 
@@ -284,6 +286,8 @@ fun NfcNavigation(
                         storageSize = state.storageSize,
                         isDarkMode = isDarkMode,
                         onToggleDarkMode = onToggleDarkMode,
+                        currentLanguage = currentLanguage,
+                        onSetLanguage = onSetLanguage,
                         onExportBackup = { },
                         onImportBackup = { }
                     )

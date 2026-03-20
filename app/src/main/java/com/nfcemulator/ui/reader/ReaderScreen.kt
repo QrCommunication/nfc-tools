@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.ui.theme.LocalAppColors
@@ -38,7 +40,7 @@ fun ReaderScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Read Tag",
+            text = stringResource(R.string.read_tag),
             style = MaterialTheme.typography.headlineLarge,
             color = LocalAppColors.current.Primary
         )
@@ -52,7 +54,7 @@ fun ReaderScreen(
         when (readProgress) {
             is ReadProgress.Idle -> {
                 Text(
-                    "Hold your device near an NFC tag",
+                    stringResource(R.string.hold_near_tag),
                     style = MaterialTheme.typography.bodyLarge,
                     color = LocalAppColors.current.TextSecondary
                 )
@@ -66,7 +68,7 @@ fun ReaderScreen(
                     shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                     modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
-                    Text("Import Dump File")
+                    Text(stringResource(R.string.import_dump_file))
                 }
             }
             is ReadProgress.Reading -> {
@@ -120,7 +122,7 @@ fun ReaderScreen(
                     shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                     modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
-                    Text("Try Again")
+                    Text(stringResource(R.string.try_again))
                 }
             }
         }
@@ -139,7 +141,7 @@ private fun CompleteContent(
     val allKeysFound = dump.totalKeys > 0 && dump.foundKeys == dump.totalKeys
 
     Text(
-        "Tag read successfully!",
+        stringResource(R.string.tag_read_success),
         style = MaterialTheme.typography.titleMedium,
         color = LocalAppColors.current.Secondary
     )
@@ -182,7 +184,7 @@ private fun CompleteContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Keys",
+                    stringResource(R.string.total_keys),
                     style = MaterialTheme.typography.bodyMedium,
                     color = LocalAppColors.current.TextSecondary
                 )
@@ -220,7 +222,7 @@ private fun CompleteContent(
             shape = RoundedCornerShape(NfcDimensions.CornerRadius),
             modifier = Modifier.fillMaxWidth(0.7f)
         ) {
-            Text("Crack Remaining Keys")
+            Text(stringResource(R.string.crack_keys))
         }
     }
 
@@ -236,7 +238,7 @@ private fun CompleteContent(
         shape = RoundedCornerShape(NfcDimensions.CornerRadius),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
     ) {
-        Text("Save Tag", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.save_tag), style = MaterialTheme.typography.titleMedium)
     }
 
     Spacer(modifier = Modifier.height(12.dp))
@@ -250,7 +252,7 @@ private fun CompleteContent(
         shape = RoundedCornerShape(NfcDimensions.CornerRadius),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
     ) {
-        Text("Read Another", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.read_another), style = MaterialTheme.typography.titleMedium)
     }
 }
 

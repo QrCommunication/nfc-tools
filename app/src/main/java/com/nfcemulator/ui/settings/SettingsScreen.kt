@@ -1,6 +1,7 @@
 package com.nfcemulator.ui.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 
@@ -23,6 +26,8 @@ fun SettingsScreen(
     storageSize: String,
     isDarkMode: Boolean,
     onToggleDarkMode: () -> Unit,
+    currentLanguage: String,
+    onSetLanguage: (String) -> Unit,
     onExportBackup: () -> Unit,
     onImportBackup: () -> Unit
 ) {
@@ -33,41 +38,41 @@ fun SettingsScreen(
             .padding(NfcDimensions.Padding)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Settings", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
+        Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        SettingsSection("Device Status") {
-            SettingsRow("Root Access", if (hasRoot) "Available" else "Not available",
+        SettingsSection(stringResource(R.string.device_status)) {
+            SettingsRow(stringResource(R.string.root_access), if (hasRoot) stringResource(R.string.available) else stringResource(R.string.not_available),
                 valueColor = if (hasRoot) LocalAppColors.current.Secondary else LocalAppColors.current.Warning)
-            SettingsRow("NXP Chipset", if (hasNxpChipset) "Detected" else "Not detected",
+            SettingsRow(stringResource(R.string.nxp_chipset), if (hasNxpChipset) stringResource(R.string.detected) else stringResource(R.string.not_detected),
                 valueColor = if (hasNxpChipset) LocalAppColors.current.Secondary else LocalAppColors.current.TextSecondary)
-            SettingsRow("Emulation Mode", emulationMode,
+            SettingsRow(stringResource(R.string.emulation_mode), emulationMode,
                 valueColor = if (emulationMode.contains("Full")) LocalAppColors.current.RootActive else LocalAppColors.current.HceOnly)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection("Dictionaries") {
-            SettingsRow("Total Keys", "$totalKeys keys loaded")
+        SettingsSection(stringResource(R.string.dictionaries)) {
+            SettingsRow(stringResource(R.string.total_keys), "$totalKeys keys loaded")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection("Storage") {
-            SettingsRow("Saved Tags", "$totalTags tags")
-            SettingsRow("Storage Used", storageSize)
+        SettingsSection(stringResource(R.string.storage)) {
+            SettingsRow(stringResource(R.string.saved_tags), "$totalTags tags")
+            SettingsRow(stringResource(R.string.storage_used), storageSize)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection("Appearance") {
+        SettingsSection(stringResource(R.string.appearance)) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Dark Mode", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
+                Text(stringResource(R.string.dark_mode), style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
                 Switch(
                     checked = isDarkMode,
                     onCheckedChange = { onToggleDarkMode() },
@@ -77,18 +82,45 @@ fun SettingsScreen(
                     )
                 )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.language), style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
+                Row {
+                    listOf("EN" to "en", "FR" to "fr").forEach { (label, code) ->
+                        val isSelected = currentLanguage == code
+                        Surface(
+                            color = if (isSelected) LocalAppColors.current.Primary else LocalAppColors.current.SurfaceVariant,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .clickable { onSetLanguage(code) }
+                        ) {
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (isSelected) LocalAppColors.current.Background else LocalAppColors.current.TextSecondary,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingsSection("Backup") {
+        SettingsSection(stringResource(R.string.backup)) {
             Button(
                 onClick = onExportBackup,
                 colors = ButtonDefaults.buttonColors(containerColor = LocalAppColors.current.Primary),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Export Backup", color = LocalAppColors.current.Background)
+                Text(stringResource(R.string.export_backup), color = LocalAppColors.current.Background)
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
@@ -98,7 +130,7 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Import Backup")
+                Text(stringResource(R.string.import_backup))
             }
         }
 

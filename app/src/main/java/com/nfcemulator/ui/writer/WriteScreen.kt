@@ -12,8 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
@@ -35,12 +37,12 @@ fun WriteScreen(
             .padding(NfcDimensions.Padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Write to Card", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Accent)
+        Text(stringResource(R.string.write_title), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Accent)
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            "Clone a saved tag to a blank magic card",
+            stringResource(R.string.write_description),
             style = MaterialTheme.typography.bodySmall,
             color = LocalAppColors.current.TextSecondary
         )
@@ -78,7 +80,7 @@ fun WriteScreen(
                     .height(52.dp)
             ) {
                 Text(
-                    if (isWaiting) "Cancel" else "Write to Magic Tag",
+                    if (isWaiting) "Cancel" else stringResource(R.string.write_to_magic_tag),
                     style = MaterialTheme.typography.titleMedium,
                     color = LocalAppColors.current.Background
                 )

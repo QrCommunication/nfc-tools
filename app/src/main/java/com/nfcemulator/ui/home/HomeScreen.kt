@@ -20,10 +20,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import com.nfcemulator.ui.theme.NfcMonoStyles
@@ -51,7 +53,7 @@ fun HomeScreen(
                 .padding(NfcDimensions.Padding)
         ) {
             Text(
-                text = "NFC Emulator",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = LocalAppColors.current.Primary
             )
@@ -64,7 +66,7 @@ fun HomeScreen(
                     searchQuery = it
                     onSearchQuery(it)
                 },
-                placeholder = { Text("Search tags...", color = LocalAppColors.current.TextSecondary) },
+                placeholder = { Text(stringResource(R.string.search_tags), color = LocalAppColors.current.TextSecondary) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = LocalAppColors.current.Primary) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -83,9 +85,9 @@ fun HomeScreen(
             if (tags.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No tags saved", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
+                        Text(stringResource(R.string.no_tags_saved), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Read a tag or import a dump file", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
+                        Text(stringResource(R.string.no_tags_hint), style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
                     }
                 }
             } else {
@@ -186,28 +188,28 @@ private fun ContextMenuOverlay(
             // Menu items
             ContextMenuItem(
                 icon = Icons.Default.PlayArrow,
-                label = "Emulate",
+                label = stringResource(R.string.emulate),
                 color = LocalAppColors.current.Primary,
                 onClick = onEmulate
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Outlined.Edit,
-                label = "Hex Editor",
+                label = stringResource(R.string.hex_editor_menu),
                 color = LocalAppColors.current.Primary,
                 onClick = onEdit
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Default.Edit,
-                label = "Rename",
+                label = stringResource(R.string.rename),
                 color = LocalAppColors.current.TextPrimary,
                 onClick = onRename
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Default.Delete,
-                label = "Delete",
+                label = stringResource(R.string.delete),
                 color = LocalAppColors.current.Error,
                 onClick = onDelete
             )

@@ -9,7 +9,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nfcemulator.R
 import com.nfcemulator.dump.model.Sector
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.ui.theme.LocalAppColors
@@ -20,7 +22,7 @@ import com.nfcemulator.ui.theme.NfcMonoStyles
 fun EditorScreen(dump: TagDump?) {
     if (dump == null) {
         Box(modifier = Modifier.fillMaxSize().background(LocalAppColors.current.Background), contentAlignment = androidx.compose.ui.Alignment.Center) {
-            Text("No dump loaded", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
+            Text(stringResource(R.string.no_dump_loaded), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
         }
         return
     }
@@ -31,7 +33,7 @@ fun EditorScreen(dump: TagDump?) {
             .background(LocalAppColors.current.Background)
             .padding(NfcDimensions.Padding)
     ) {
-        Text("Hex Editor", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
+        Text(stringResource(R.string.hex_editor), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -85,7 +87,7 @@ private fun SectorView(sector: Sector) {
                 sector.keyA != null && sector.keyB != null -> "A+B"
                 sector.keyA != null -> "A"
                 sector.keyB != null -> "B"
-                else -> "Locked"
+                else -> stringResource(R.string.locked)
             }
             val keyColor = when {
                 sector.keyA != null && sector.keyB != null -> LocalAppColors.current.KeyFound
