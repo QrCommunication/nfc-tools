@@ -7,6 +7,7 @@ import android.net.Uri
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import com.nfcemulator.dump.analyzer.DictionaryManager
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.dump.parser.DumpParserFactory
+import com.nfcemulator.nfc.emulator.EmulationState
+import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.nfc.reader.TagReader
 import com.nfcemulator.nfc.writer.TagWriter
 import com.nfcemulator.nfc.writer.WriteProgress
@@ -53,6 +56,21 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             dictionaryManager.loadDictionaries()
+        }
+
+        // Keep screen on while reading/testing keys or emulating
+        lifecycleScope.launch {
+            tagReader.progress.collect { progress ->
+                val busy = progress is ReadProgress.Reading || progress is ReadProgress.KeyTesting
+                updateKeepScreenOn(busy || EmulationState.isEmulating.value)
+            }
+        }
+        lifecycleScope.launch {
+            EmulationState.isEmulating.collect { emulating ->
+                val reading = tagReader.progress.value is ReadProgress.Reading ||
+                    tagReader.progress.value is ReadProgress.KeyTesting
+                updateKeepScreenOn(emulating || reading)
+            }
         }
 
         setContent {
@@ -188,5 +206,15 @@ class MainActivity : ComponentActivity() {
             arrayOf("android.nfc.tech.NfcA")
         )
         nfcAdapter?.enableForegroundDispatch(this, pendingIntent, intentFilters, techLists)
+    }
+
+    private fun updateKeepScreenOn(keepOn: Boolean) {
+        runOnUiThread {
+            if (keepOn) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+        }
     }
 }
