@@ -1,6 +1,5 @@
 # NFC Emulator — Master Key Dictionary
-# 3347 unique keys — merged from MCT, Proxmark3, Flipper Zero, community
-# Flipper Zero, and community sources
+# Merged from MCT std+extended, Proxmark3, Flipper Zero, community
 #
 000000000000
 000000000001

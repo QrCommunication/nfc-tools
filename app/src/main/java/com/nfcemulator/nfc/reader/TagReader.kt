@@ -72,55 +72,34 @@ class TagReader {
 
         try {
             mfc.connect()
+            mfc.setTimeout(2000)
             val sectorCount = mfc.sectorCount
 
             for (sectorIndex in 0 until sectorCount) {
                 _progress.value = ReadProgress.Reading(sectorIndex, sectorCount)
 
-                var authenticatedKeyA: ByteArray? = null
-                var authenticatedKeyB: ByteArray? = null
-                val blocks = mutableListOf<Block>()
+                var foundKeyA: ByteArray? = null
+                var foundKeyB: ByteArray? = null
 
-                // Try default key first
-                val defaultKey = byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte())
-                if (mfc.authenticateSectorWithKeyA(sectorIndex, defaultKey)) {
-                    authenticatedKeyA = defaultKey
-                } else {
-                    for ((idx, key) in keys.withIndex()) {
-                        _progress.value = ReadProgress.KeyTesting(sectorIndex, idx + 1)
-                        if (mfc.authenticateSectorWithKeyA(sectorIndex, key)) {
-                            authenticatedKeyA = key
-                            break
-                        }
-                    }
-                }
+                // === FIND KEY A ===
+                foundKeyA = tryAuthenticateA(mfc, sectorIndex, keys)
 
-                if (authenticatedKeyA == null) {
-                    if (mfc.authenticateSectorWithKeyB(sectorIndex, defaultKey)) {
-                        authenticatedKeyB = defaultKey
-                    } else {
-                        for (key in keys) {
-                            if (mfc.authenticateSectorWithKeyB(sectorIndex, key)) {
-                                authenticatedKeyB = key
-                                break
-                            }
-                        }
-                    }
-                }
+                // === FIND KEY B (ALWAYS, even if Key A was found) ===
+                foundKeyB = tryAuthenticateB(mfc, sectorIndex, keys)
 
+                // === READ BLOCKS ===
                 val blockCount = mfc.getBlockCountInSector(sectorIndex)
                 val firstBlock = mfc.sectorToBlock(sectorIndex)
+                val blocks = mutableListOf<Block>()
 
                 for (blockIndex in 0 until blockCount) {
                     val absoluteBlock = firstBlock + blockIndex
-                    val data = if (authenticatedKeyA != null || authenticatedKeyB != null) {
-                        try {
-                            mfc.readBlock(absoluteBlock)
-                        } catch (_: Exception) {
-                            ByteArray(16)
-                        }
-                    } else {
-                        ByteArray(16)
+                    var data = ByteArray(16)
+
+                    if (foundKeyA != null) {
+                        data = readBlockSafe(mfc, sectorIndex, absoluteBlock, foundKeyA, isKeyA = true)
+                    } else if (foundKeyB != null) {
+                        data = readBlockSafe(mfc, sectorIndex, absoluteBlock, foundKeyB, isKeyA = false)
                     }
 
                     val isTrailer = blockIndex == blockCount - 1
@@ -128,8 +107,8 @@ class TagReader {
                         Block(
                             index = absoluteBlock,
                             data = data,
-                            keyA = if (isTrailer) authenticatedKeyA else null,
-                            keyB = if (isTrailer) authenticatedKeyB else null,
+                            keyA = if (isTrailer) foundKeyA else null,
+                            keyB = if (isTrailer) foundKeyB else null,
                             accessBits = if (isTrailer && data.size >= 10) data.sliceArray(6..9) else null
                         )
                     )
@@ -144,6 +123,81 @@ class TagReader {
         }
 
         return sectors
+    }
+
+    private fun tryAuthenticateA(
+        mfc: MifareClassic,
+        sectorIndex: Int,
+        keys: List<ByteArray>
+    ): ByteArray? {
+        for ((idx, key) in keys.withIndex()) {
+            if (idx % 50 == 0) {
+                _progress.value = ReadProgress.KeyTesting(sectorIndex, idx)
+            }
+            try {
+                ensureConnected(mfc)
+                if (mfc.authenticateSectorWithKeyA(sectorIndex, key)) {
+                    return key.copyOf()
+                }
+            } catch (_: Exception) {
+                reconnect(mfc)
+            }
+        }
+        return null
+    }
+
+    private fun tryAuthenticateB(
+        mfc: MifareClassic,
+        sectorIndex: Int,
+        keys: List<ByteArray>
+    ): ByteArray? {
+        for (key in keys) {
+            try {
+                ensureConnected(mfc)
+                if (mfc.authenticateSectorWithKeyB(sectorIndex, key)) {
+                    return key.copyOf()
+                }
+            } catch (_: Exception) {
+                reconnect(mfc)
+            }
+        }
+        return null
+    }
+
+    private fun readBlockSafe(
+        mfc: MifareClassic,
+        sectorIndex: Int,
+        blockIndex: Int,
+        key: ByteArray,
+        isKeyA: Boolean
+    ): ByteArray {
+        return try {
+            ensureConnected(mfc)
+            if (isKeyA) {
+                mfc.authenticateSectorWithKeyA(sectorIndex, key)
+            } else {
+                mfc.authenticateSectorWithKeyB(sectorIndex, key)
+            }
+            mfc.readBlock(blockIndex)
+        } catch (_: Exception) {
+            reconnect(mfc)
+            ByteArray(16)
+        }
+    }
+
+    private fun ensureConnected(mfc: MifareClassic) {
+        if (!mfc.isConnected) {
+            mfc.connect()
+            mfc.setTimeout(2000)
+        }
+    }
+
+    private fun reconnect(mfc: MifareClassic) {
+        try { mfc.close() } catch (_: Exception) {}
+        try {
+            mfc.connect()
+            mfc.setTimeout(2000)
+        } catch (_: Exception) {}
     }
 
     private fun readMifareUltralight(tag: Tag): List<Sector> {
