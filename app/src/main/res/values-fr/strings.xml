@@ -92,6 +92,17 @@
     <string name="delete">Supprimer</string>
     <string name="export_dump">Exporter le dump</string>
 
+    <!-- Misc -->
+    <string name="tagline">Lire. Cloner. Émuler.</string>
+    <string name="view_all">Voir tout</string>
+    <string name="selected">Sélectionné :</string>
+    <string name="cancel">Annuler</string>
+    <string name="select_another">Sélectionner un autre tag :</string>
+    <string name="select_tag_write">Sélectionnez un tag à écrire :</string>
+    <string name="version_info">NFC Emulator v1.0.0 — GPL v3</string>
+    <string name="dashboard">Tableau de bord</string>
+    <string name="menu">Menu</string>
+
     <!-- Export -->
     <string name="export_as">Exporter en</string>
     <string name="export_mct">Format MCT (.mct)</string>

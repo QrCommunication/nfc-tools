@@ -58,6 +58,8 @@ import com.nfcemulator.ui.reader.ReaderScreen
 import com.nfcemulator.ui.settings.SettingsScreen
 import com.nfcemulator.ui.settings.SettingsViewModel
 import com.nfcemulator.ui.splash.SplashScreen
+import androidx.compose.ui.res.stringResource
+import com.nfcemulator.R
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.writer.WriteScreen
 import com.nfcemulator.ui.writer.WriteViewModel
@@ -98,15 +100,15 @@ fun NfcNavigation(
         }
     }
 
-    data class DrawerItem(val route: String, val label: String, val icon: ImageVector)
+    data class DrawerItem(val route: String, val labelRes: Int, val icon: ImageVector)
     val drawerItems = listOf(
-        DrawerItem("dashboard", "Dashboard", Icons.Default.Home),
-        DrawerItem("tags", "My Tags", Icons.Default.List),
-        DrawerItem("reader", "Read Tag", Icons.Default.Search),
-        DrawerItem("writer", "Write to Card", Icons.Default.Create),
-        DrawerItem("emulator", "Emulate", Icons.Default.PlayArrow),
-        DrawerItem("editor", "Hex Editor", Icons.Outlined.Edit),
-        DrawerItem("settings", "Settings", Icons.Default.Settings)
+        DrawerItem("dashboard", R.string.dashboard, Icons.Default.Home),
+        DrawerItem("tags", R.string.my_tags, Icons.Default.List),
+        DrawerItem("reader", R.string.read_tag, Icons.Default.Search),
+        DrawerItem("writer", R.string.write_title, Icons.Default.Create),
+        DrawerItem("emulator", R.string.emulate_title, Icons.Default.PlayArrow),
+        DrawerItem("editor", R.string.hex_editor, Icons.Outlined.Edit),
+        DrawerItem("settings", R.string.settings_title, Icons.Default.Settings)
     )
 
     ModalNavigationDrawer(
@@ -122,26 +124,27 @@ fun NfcNavigation(
                         .background(LocalAppColors.current.SurfaceVariant)
                         .padding(24.dp)
                 ) {
-                    Text("NFC Emulator", style = MaterialTheme.typography.headlineSmall, color = LocalAppColors.current.Primary)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, color = LocalAppColors.current.Primary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
+                    Text(stringResource(R.string.tagline), style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     drawerItems.forEach { item ->
+                        val itemLabel = stringResource(item.labelRes)
                         NavigationDrawerItem(
                             icon = {
                                 Icon(
                                     item.icon,
-                                    contentDescription = item.label,
+                                    contentDescription = itemLabel,
                                     tint = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextSecondary
                                 )
                             },
                             label = {
                                 Text(
-                                    item.label,
+                                    itemLabel,
                                     color = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextPrimary
                                 )
                             },

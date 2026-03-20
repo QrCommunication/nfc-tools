@@ -119,7 +119,7 @@ fun EmulatorScreen(
                     .fillMaxWidth(0.7f)
                     .height(48.dp)
             ) {
-                Text("Write to Magic Tag", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.write_to_magic_tag), style = MaterialTheme.typography.titleMedium)
             }
 
             if (writeProgress.isNotEmpty()) {

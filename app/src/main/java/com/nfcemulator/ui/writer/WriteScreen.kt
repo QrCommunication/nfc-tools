@@ -58,7 +58,7 @@ fun WriteScreen(
                     .padding(NfcDimensions.CardPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Selected:", style = MaterialTheme.typography.labelSmall, color = LocalAppColors.current.TextSecondary)
+                Text(stringResource(R.string.selected), style = MaterialTheme.typography.labelSmall, color = LocalAppColors.current.TextSecondary)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(selectedTag.name, style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
                 Text("UID: ${selectedTag.uid}", style = NfcMonoStyles.uid.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize), color = LocalAppColors.current.Secondary)
@@ -100,7 +100,7 @@ fun WriteScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                "Select another tag:",
+                stringResource(R.string.select_another),
                 style = MaterialTheme.typography.labelMedium,
                 color = LocalAppColors.current.TextSecondary,
                 modifier = Modifier.fillMaxWidth()
@@ -109,7 +109,7 @@ fun WriteScreen(
             Spacer(modifier = Modifier.height(8.dp))
         } else {
             Text(
-                "Select a tag to write:",
+                stringResource(R.string.select_tag_write),
                 style = MaterialTheme.typography.titleMedium,
                 color = LocalAppColors.current.TextSecondary
             )

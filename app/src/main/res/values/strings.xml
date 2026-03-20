@@ -92,6 +92,17 @@
     <string name="delete">Delete</string>
     <string name="export_dump">Export Dump</string>
 
+    <!-- Misc -->
+    <string name="tagline">Read. Clone. Emulate.</string>
+    <string name="view_all">View all</string>
+    <string name="selected">Selected:</string>
+    <string name="cancel">Cancel</string>
+    <string name="select_another">Select another tag:</string>
+    <string name="select_tag_write">Select a tag to write:</string>
+    <string name="version_info">NFC Emulator v1.0.0 — GPL v3</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="menu">Menu</string>
+
     <!-- Export -->
     <string name="export_as">Export as</string>
     <string name="export_mct">MCT Format (.mct)</string>

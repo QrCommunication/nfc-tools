@@ -137,7 +137,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            "NFC Emulator v1.0.0 — GPL v3",
+            stringResource(R.string.version_info),
             style = MaterialTheme.typography.bodySmall,
             color = LocalAppColors.current.TextSecondary
         )

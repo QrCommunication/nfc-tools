@@ -54,7 +54,7 @@ fun DashboardScreen(
         ) {
             Column {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
-                Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
+                Text(stringResource(R.string.tagline), style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
             }
             IconButton(onClick = onSettings) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = LocalAppColors.current.TextSecondary)
@@ -166,7 +166,7 @@ fun DashboardScreen(
         ) {
             Text(stringResource(R.string.my_tags), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("View all", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Primary)
+                Text(stringResource(R.string.view_all), style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Primary)
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     Icons.Default.KeyboardArrowRight,
