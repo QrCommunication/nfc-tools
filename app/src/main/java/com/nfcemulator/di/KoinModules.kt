@@ -15,6 +15,7 @@ import com.nfcemulator.storage.local.AppDatabase
 import com.nfcemulator.ui.emulator.EmulatorViewModel
 import com.nfcemulator.ui.home.HomeViewModel
 import com.nfcemulator.ui.settings.SettingsViewModel
+import com.nfcemulator.ui.writer.WriteViewModel
 import com.topjohnwu.superuser.Shell
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -50,6 +51,7 @@ val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
     viewModel { EmulatorViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get()) }
+    viewModel { WriteViewModel(get(), get()) }
 }
 
 val allModules = listOf(databaseModule, storageModule, nfcModule, viewModelModule)

@@ -21,6 +21,8 @@ fun SettingsScreen(
     totalKeys: Int,
     totalTags: Int,
     storageSize: String,
+    isDarkMode: Boolean,
+    onToggleDarkMode: () -> Unit,
     onExportBackup: () -> Unit,
     onImportBackup: () -> Unit
 ) {
@@ -55,6 +57,26 @@ fun SettingsScreen(
         SettingsSection("Storage") {
             SettingsRow("Saved Tags", "$totalTags tags")
             SettingsRow("Storage Used", storageSize)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SettingsSection("Appearance") {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Dark Mode", style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextSecondary)
+                Switch(
+                    checked = isDarkMode,
+                    onCheckedChange = { onToggleDarkMode() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = NfcColors.Primary,
+                        checkedTrackColor = NfcColors.Primary.copy(alpha = 0.3f)
+                    )
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

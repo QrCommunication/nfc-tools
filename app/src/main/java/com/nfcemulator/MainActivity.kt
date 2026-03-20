@@ -32,6 +32,8 @@ import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
+    private val prefs by lazy { getSharedPreferences("nfc_emulator_prefs", MODE_PRIVATE) }
+
     private var nfcAdapter: NfcAdapter? = null
     private val tagReader: TagReader by inject()
     private val tagWriter: TagWriter by inject()
@@ -74,7 +76,9 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            NfcEmulatorTheme {
+            var isDarkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", true)) }
+
+            NfcEmulatorTheme(darkTheme = isDarkMode) {
                 val readProgress by tagReader.progress.collectAsState()
 
                 NfcNavigation(
@@ -84,7 +88,12 @@ class MainActivity : ComponentActivity() {
                     },
                     onSaveTag = { dump -> saveTag(dump) },
                     onResetReader = { tagReader.reset() },
-                    onCrackKeys = { dump -> crackRemainingKeys(dump) }
+                    onCrackKeys = { dump -> crackRemainingKeys(dump) },
+                    isDarkMode = isDarkMode,
+                    onToggleDarkMode = {
+                        isDarkMode = !isDarkMode
+                        prefs.edit().putBoolean("dark_mode", isDarkMode).apply()
+                    }
                 )
             }
         }

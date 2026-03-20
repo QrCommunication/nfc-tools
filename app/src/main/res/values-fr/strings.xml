@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NFC Emulator</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_read">Lire</string>
+    <string name="nav_write">Écrire</string>
+    <string name="nav_emulate">Émuler</string>
+    <string name="nav_editor">Éditeur</string>
+    <string name="nav_settings">Paramètres</string>
+
+    <!-- Home / Dashboard -->
+    <string name="dashboard_title">Tableau de bord</string>
+    <string name="total_tags">Tags sauvegardés</string>
+    <string name="keys_loaded">Clés chargées</string>
+    <string name="storage_used">Stockage utilisé</string>
+    <string name="quick_actions">Actions rapides</string>
+    <string name="read_tag">Lire un tag</string>
+    <string name="import_file">Importer</string>
+    <string name="write_card">Écrire</string>
+    <string name="my_tags">Mes tags</string>
+    <string name="no_tags_saved">Aucun tag sauvegardé</string>
+    <string name="no_tags_hint">Lisez un tag ou importez un fichier dump</string>
+    <string name="search_tags">Rechercher…</string>
+
+    <!-- Reader -->
+    <string name="hold_near_tag">Approchez votre appareil d\'un tag NFC</string>
+    <string name="reading_sector">Lecture secteur %1$d/%2$d</string>
+    <string name="testing_keys">Test des clés secteur %1$d</string>
+    <string name="keys_tested">%1$d clés testées</string>
+    <string name="tag_read_success">Tag lu avec succès !</string>
+    <string name="keys_found">Clés : %1$d/%2$d trouvées</string>
+    <string name="keys_remaining">%1$d clés restantes — essayer le dictionnaire étendu ?</string>
+    <string name="crack_keys">Décrypter les clés restantes</string>
+    <string name="save_tag">Sauvegarder</string>
+    <string name="read_another">Lire un autre</string>
+    <string name="import_dump_file">Importer un fichier dump</string>
+    <string name="try_again">Réessayer</string>
+
+    <!-- Write -->
+    <string name="write_title">Écrire sur carte</string>
+    <string name="write_description">Cloner un tag sauvegardé sur une carte magic vierge (CUID/Gen1a)</string>
+    <string name="write_to_magic_tag">Écrire sur tag magic</string>
+    <string name="waiting_for_tag">En attente du tag magic… Approchez une carte vierge</string>
+    <string name="writing_sector">Écriture secteur %1$d/%2$d…</string>
+    <string name="write_complete">Écriture terminée ! %1$d/%2$d secteurs écrits</string>
+    <string name="select_tag_to_write">Sélectionnez un tag à écrire</string>
+
+    <!-- Emulate -->
+    <string name="emulate_title">Émuler</string>
+    <string name="no_tag_selected">Aucun tag sélectionné</string>
+    <string name="select_a_tag">Sélectionner un tag</string>
+    <string name="start">DÉMARRER</string>
+    <string name="stop">ARRÊTER</string>
+    <string name="emulation_active">Émulation active — approchez le téléphone du lecteur</string>
+    <string name="emulation_stopped">Émulation arrêtée</string>
+
+    <!-- Editor -->
+    <string name="hex_editor">Éditeur hexadécimal</string>
+    <string name="no_dump_loaded">Aucun dump chargé</string>
+    <string name="sectors">%1$d secteurs</string>
+    <string name="locked">Verrouillé</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Paramètres</string>
+    <string name="device_status">État de l\'appareil</string>
+    <string name="root_access">Accès root</string>
+    <string name="available">Disponible</string>
+    <string name="not_available">Non disponible</string>
+    <string name="nxp_chipset">Chipset NXP</string>
+    <string name="detected">Détecté</string>
+    <string name="not_detected">Non détecté</string>
+    <string name="emulation_mode">Mode d\'émulation</string>
+    <string name="dictionaries">Dictionnaires</string>
+    <string name="total_keys">Clés totales</string>
+    <string name="keys_loaded_count">%1$d clés chargées</string>
+    <string name="storage">Stockage</string>
+    <string name="saved_tags">Tags sauvegardés</string>
+    <string name="tags_count">%1$d tags</string>
+    <string name="backup">Sauvegarde</string>
+    <string name="export_backup">Exporter</string>
+    <string name="import_backup">Importer</string>
+    <string name="appearance">Apparence</string>
+    <string name="dark_mode">Mode sombre</string>
+    <string name="language">Langue</string>
+
+    <!-- Context Menu -->
+    <string name="emulate">Émuler</string>
+    <string name="hex_editor_menu">Éditeur hex</string>
+    <string name="rename">Renommer</string>
+    <string name="delete">Supprimer</string>
+    <string name="export_dump">Exporter le dump</string>
+
+    <!-- Export -->
+    <string name="export_as">Exporter en</string>
+    <string name="export_mct">Format MCT (.mct)</string>
+    <string name="export_bin">Binaire (.bin)</string>
+    <string name="export_json">JSON (.json)</string>
+</resources>
