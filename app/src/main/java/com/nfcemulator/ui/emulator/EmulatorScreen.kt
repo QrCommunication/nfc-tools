@@ -22,8 +22,10 @@ fun EmulatorScreen(
     isEmulating: Boolean,
     emulationMode: String,
     statusMessage: String = "",
+    writeProgress: String = "",
     onStartEmulation: () -> Unit,
     onStopEmulation: () -> Unit,
+    onWriteToTag: () -> Unit,
     onSelectTag: () -> Unit
 ) {
     Column(
@@ -100,6 +102,33 @@ fun EmulatorScreen(
                     else -> NfcColors.TextSecondary
                 }
                 Text(statusMessage, style = MaterialTheme.typography.bodyMedium, color = messageColor)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onWriteToTag,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Accent),
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Accent)
+                ),
+                shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(48.dp)
+            ) {
+                Text("Write to Magic Tag", style = MaterialTheme.typography.titleMedium)
+            }
+
+            if (writeProgress.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val wpColor = when {
+                    writeProgress.startsWith("Error") || writeProgress.startsWith("Cannot") || writeProgress.startsWith("Failed") -> NfcColors.Error
+                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> NfcColors.Secondary
+                    writeProgress.contains("Waiting") -> NfcColors.Warning
+                    else -> NfcColors.Accent
+                }
+                Text(writeProgress, style = MaterialTheme.typography.bodySmall, color = wpColor)
             }
         } else {
             Text("No tag selected", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextSecondary)

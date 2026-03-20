@@ -151,8 +151,10 @@ fun NfcNavigation(
                     isEmulating = state.isEmulating,
                     emulationMode = state.emulationMode,
                     statusMessage = state.statusMessage,
+                    writeProgress = state.writeProgress,
                     onStartEmulation = { emulatorViewModel.startEmulation() },
                     onStopEmulation = { emulatorViewModel.stopEmulation() },
+                    onWriteToTag = { emulatorViewModel.startWriteMode() },
                     onSelectTag = {
                         navController.navigate(Screen.Home.route) {
                             launchSingleTop = true

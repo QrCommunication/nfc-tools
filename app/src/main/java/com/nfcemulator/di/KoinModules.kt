@@ -8,6 +8,7 @@ import com.nfcemulator.nfc.hal.HceEmulatorHal
 import com.nfcemulator.nfc.hal.NfcEmulatorHal
 import com.nfcemulator.nfc.hal.RootNxpEmulatorHal
 import com.nfcemulator.nfc.reader.TagReader
+import com.nfcemulator.nfc.writer.TagWriter
 import com.nfcemulator.storage.CryptoManager
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.AppDatabase
@@ -39,6 +40,7 @@ val nfcModule = module {
     single { DictionaryManager(androidContext()) }
     single { KeyCracker(get()) }
     single { TagReader() }
+    single { TagWriter() }
     single { DumpParserFactory() }
     single<NfcEmulatorHal> { RootNxpEmulatorHal(androidContext()) }
     single { HceEmulatorHal(androidContext()) }
@@ -46,7 +48,7 @@ val nfcModule = module {
 
 val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
-    viewModel { EmulatorViewModel(get(), get()) }
+    viewModel { EmulatorViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get()) }
 }
 

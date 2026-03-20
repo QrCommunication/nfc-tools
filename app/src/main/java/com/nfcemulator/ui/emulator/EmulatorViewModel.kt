@@ -7,6 +7,8 @@ import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.dump.model.TagType
 import com.nfcemulator.nfc.emulator.EmulationState
 import com.nfcemulator.nfc.hal.NfcEmulatorHal
+import com.nfcemulator.nfc.writer.TagWriter
+import com.nfcemulator.nfc.writer.WriteProgress
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.ui.home.TagUiModel
 import kotlinx.coroutines.flow.*
@@ -16,12 +18,14 @@ data class EmulatorUiState(
     val selectedTag: TagUiModel? = null,
     val isEmulating: Boolean = false,
     val emulationMode: String = "HCE Standard (Limited)",
-    val statusMessage: String = ""
+    val statusMessage: String = "",
+    val writeProgress: String = ""
 )
 
 class EmulatorViewModel(
     private val nfcHal: NfcEmulatorHal,
-    private val encryptedFileManager: EncryptedFileManager
+    private val encryptedFileManager: EncryptedFileManager,
+    private val tagWriter: TagWriter
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EmulatorUiState())
@@ -36,6 +40,19 @@ class EmulatorViewModel(
         viewModelScope.launch {
             EmulationState.isEmulating.collect { emulating ->
                 _uiState.update { it.copy(isEmulating = emulating) }
+            }
+        }
+        // Observe write progress
+        viewModelScope.launch {
+            tagWriter.progress.collect { progress ->
+                val message = when (progress) {
+                    is WriteProgress.Idle -> ""
+                    is WriteProgress.WaitingForTag -> "Waiting for magic tag... Hold a blank tag near the phone"
+                    is WriteProgress.Writing -> "Writing sector ${progress.sector}/${progress.total}..."
+                    is WriteProgress.Complete -> "Write complete! ${progress.sectorsWritten}/${progress.totalSectors} sectors written"
+                    is WriteProgress.Error -> progress.message
+                }
+                _uiState.update { it.copy(writeProgress = message) }
             }
         }
     }
@@ -76,6 +93,10 @@ class EmulatorViewModel(
             }
             _uiState.update { it.copy(statusMessage = message) }
         }
+    }
+
+    fun startWriteMode() {
+        tagWriter.startWaiting()
     }
 
     fun stopEmulation() {

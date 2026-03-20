@@ -17,6 +17,8 @@ import com.nfcemulator.dump.analyzer.DictionaryManager
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.dump.parser.DumpParserFactory
 import com.nfcemulator.nfc.reader.TagReader
+import com.nfcemulator.nfc.writer.TagWriter
+import com.nfcemulator.nfc.writer.WriteProgress
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.TagDao
 import com.nfcemulator.ui.NfcNavigation
@@ -29,6 +31,7 @@ class MainActivity : ComponentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private val tagReader: TagReader by inject()
+    private val tagWriter: TagWriter by inject()
     private val dictionaryManager: DictionaryManager by inject()
     private val dumpParserFactory: DumpParserFactory by inject()
     private val encryptedFileManager: EncryptedFileManager by inject()
@@ -90,8 +93,28 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return
         @Suppress("DEPRECATION")
         val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
-        lastReadTag = tag
 
+        // If in write mode, write to the tag instead of reading
+        if (tagWriter.progress.value is WriteProgress.WaitingForTag) {
+            lifecycleScope.launch {
+                val emulatorVm = org.koin.java.KoinJavaComponent.getKoin().get<com.nfcemulator.ui.emulator.EmulatorViewModel>()
+                val selectedTag = emulatorVm.uiState.value.selectedTag ?: return@launch
+                val rawData = encryptedFileManager.loadDump(selectedTag.id) ?: return@launch
+
+                val dump = com.nfcemulator.dump.model.TagDump(
+                    id = selectedTag.id,
+                    name = selectedTag.name,
+                    type = com.nfcemulator.dump.model.TagType.entries.find { it.displayName == selectedTag.type } ?: com.nfcemulator.dump.model.TagType.UNKNOWN,
+                    uid = selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray(),
+                    rawData = rawData,
+                    sourceFormat = com.nfcemulator.dump.model.DumpFormat.JSON
+                )
+                tagWriter.writeTag(tag, dump)
+            }
+            return
+        }
+
+        lastReadTag = tag
         lifecycleScope.launch {
             val keys = dictionaryManager.getAllKeys()
             tagReader.readTag(tag, keys)
