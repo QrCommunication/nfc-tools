@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 
 data class DashboardStats(
@@ -40,7 +40,7 @@ fun DashboardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background)
+            .background(LocalAppColors.current.Background)
             .verticalScroll(rememberScrollState())
             .padding(NfcDimensions.Padding)
     ) {
@@ -51,11 +51,11 @@ fun DashboardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text("NFC Emulator", style = MaterialTheme.typography.headlineLarge, color = NfcColors.Primary)
-                Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = NfcColors.Secondary)
+                Text("NFC Emulator", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
+                Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
             }
             IconButton(onClick = onSettings) {
-                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = NfcColors.TextSecondary)
+                Icon(Icons.Default.Settings, contentDescription = "Settings", tint = LocalAppColors.current.TextSecondary)
             }
         }
 
@@ -70,19 +70,19 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f),
                 value = stats.totalTags.toString(),
                 label = "Tags",
-                color = NfcColors.Primary
+                color = LocalAppColors.current.Primary
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 value = if (stats.totalKeys > 1000) "${stats.totalKeys / 1000}K+" else stats.totalKeys.toString(),
                 label = "Keys",
-                color = NfcColors.Secondary
+                color = LocalAppColors.current.Secondary
             )
             KpiCard(
                 modifier = Modifier.weight(1f),
                 value = stats.storageUsed,
                 label = "Storage",
-                color = NfcColors.Accent
+                color = LocalAppColors.current.Accent
             )
         }
 
@@ -94,7 +94,7 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Surface(
-                    color = NfcColors.SurfaceVariant,
+                    color = LocalAppColors.current.SurfaceVariant,
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Row(
@@ -105,13 +105,13 @@ fun DashboardScreen(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(if (stats.hasRoot) NfcColors.Secondary else NfcColors.Warning)
+                                .background(if (stats.hasRoot) LocalAppColors.current.Secondary else LocalAppColors.current.Warning)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             stats.emulationMode,
                             style = MaterialTheme.typography.labelMedium,
-                            color = NfcColors.TextSecondary
+                            color = LocalAppColors.current.TextSecondary
                         )
                     }
                 }
@@ -121,7 +121,7 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         // Quick Actions
-        Text("Quick Actions", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextPrimary)
+        Text("Quick Actions", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -133,21 +133,21 @@ fun DashboardScreen(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.Search,
                 label = "Read Tag",
-                color = NfcColors.Primary,
+                color = LocalAppColors.current.Primary,
                 onClick = onReadTag
             )
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.Add,
                 label = "Import",
-                color = NfcColors.Secondary,
+                color = LocalAppColors.current.Secondary,
                 onClick = onImportFile
             )
             QuickActionCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Outlined.Edit,
                 label = "Write",
-                color = NfcColors.Accent,
+                color = LocalAppColors.current.Accent,
                 onClick = onWriteCard
             )
         }
@@ -162,14 +162,14 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("My Tags", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextPrimary)
+            Text("My Tags", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("View all", style = MaterialTheme.typography.bodySmall, color = NfcColors.Primary)
+                Text("View all", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Primary)
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     Icons.Default.KeyboardArrowRight,
                     contentDescription = null,
-                    tint = NfcColors.Primary,
+                    tint = LocalAppColors.current.Primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -182,13 +182,13 @@ fun DashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-                    .border(NfcDimensions.BorderWidth, NfcColors.Border, RoundedCornerShape(NfcDimensions.CornerRadius)),
+                    .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+                    .border(NfcDimensions.BorderWidth, LocalAppColors.current.Border, RoundedCornerShape(NfcDimensions.CornerRadius)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("No tags yet", style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextSecondary)
-                    Text("Read a tag to get started", style = MaterialTheme.typography.bodySmall, color = NfcColors.TextSecondary)
+                    Text("No tags yet", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
+                    Text("Read a tag to get started", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
                 }
             }
         }
@@ -204,14 +204,14 @@ private fun KpiCard(
 ) {
     Column(
         modifier = modifier
-            .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-            .border(NfcDimensions.BorderWidth, NfcColors.Border, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .border(NfcDimensions.BorderWidth, LocalAppColors.current.Border, RoundedCornerShape(NfcDimensions.CornerRadius))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(value, style = MaterialTheme.typography.headlineSmall, color = color)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = NfcColors.TextSecondary)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = LocalAppColors.current.TextSecondary)
     }
 }
 
@@ -226,7 +226,7 @@ private fun QuickActionCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(NfcDimensions.CornerRadius))
-            .background(NfcColors.Surface)
+            .background(LocalAppColors.current.Surface)
             .border(NfcDimensions.BorderWidth, color.copy(alpha = 0.3f), RoundedCornerShape(NfcDimensions.CornerRadius))
             .clickable(onClick = onClick)
             .padding(16.dp),
@@ -242,6 +242,6 @@ private fun QuickActionCard(
             Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(22.dp))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, color = NfcColors.TextPrimary)
+        Text(label, style = MaterialTheme.typography.labelMedium, color = LocalAppColors.current.TextPrimary)
     }
 }

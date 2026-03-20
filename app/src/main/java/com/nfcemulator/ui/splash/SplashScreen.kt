@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import kotlinx.coroutines.delay
 
 @Composable
@@ -42,7 +42,7 @@ fun SplashScreen(onFinished: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background),
+            .background(LocalAppColors.current.Background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -55,13 +55,13 @@ fun SplashScreen(onFinished: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .border(3.dp, NfcColors.Primary, CircleShape),
+                    .border(3.dp, LocalAppColors.current.Primary, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     "NFC",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = NfcColors.Primary
+                    color = LocalAppColors.current.Primary
                 )
             }
 
@@ -70,7 +70,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             Text(
                 "NFC Emulator",
                 style = MaterialTheme.typography.headlineMedium,
-                color = NfcColors.TextPrimary
+                color = LocalAppColors.current.TextPrimary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -78,7 +78,7 @@ fun SplashScreen(onFinished: () -> Unit) {
             Text(
                 "Read. Clone. Emulate.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = NfcColors.Secondary,
+                color = LocalAppColors.current.Secondary,
                 fontSize = 14.sp
             )
         }

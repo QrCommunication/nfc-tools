@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 
 @Composable
@@ -29,21 +29,21 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background)
+            .background(LocalAppColors.current.Background)
             .padding(NfcDimensions.Padding)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Settings", style = MaterialTheme.typography.headlineLarge, color = NfcColors.Primary)
+        Text("Settings", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
 
         Spacer(modifier = Modifier.height(24.dp))
 
         SettingsSection("Device Status") {
             SettingsRow("Root Access", if (hasRoot) "Available" else "Not available",
-                valueColor = if (hasRoot) NfcColors.Secondary else NfcColors.Warning)
+                valueColor = if (hasRoot) LocalAppColors.current.Secondary else LocalAppColors.current.Warning)
             SettingsRow("NXP Chipset", if (hasNxpChipset) "Detected" else "Not detected",
-                valueColor = if (hasNxpChipset) NfcColors.Secondary else NfcColors.TextSecondary)
+                valueColor = if (hasNxpChipset) LocalAppColors.current.Secondary else LocalAppColors.current.TextSecondary)
             SettingsRow("Emulation Mode", emulationMode,
-                valueColor = if (emulationMode.contains("Full")) NfcColors.RootActive else NfcColors.HceOnly)
+                valueColor = if (emulationMode.contains("Full")) LocalAppColors.current.RootActive else LocalAppColors.current.HceOnly)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -67,13 +67,13 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Dark Mode", style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextSecondary)
+                Text("Dark Mode", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
                 Switch(
                     checked = isDarkMode,
                     onCheckedChange = { onToggleDarkMode() },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = NfcColors.Primary,
-                        checkedTrackColor = NfcColors.Primary.copy(alpha = 0.3f)
+                        checkedThumbColor = LocalAppColors.current.Primary,
+                        checkedTrackColor = LocalAppColors.current.Primary.copy(alpha = 0.3f)
                     )
                 )
             }
@@ -84,17 +84,17 @@ fun SettingsScreen(
         SettingsSection("Backup") {
             Button(
                 onClick = onExportBackup,
-                colors = ButtonDefaults.buttonColors(containerColor = NfcColors.Primary),
+                colors = ButtonDefaults.buttonColors(containerColor = LocalAppColors.current.Primary),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Export Backup", color = NfcColors.Background)
+                Text("Export Backup", color = LocalAppColors.current.Background)
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = onImportBackup,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
-                border = ButtonDefaults.outlinedButtonBorder.copy(brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
+                border = ButtonDefaults.outlinedButtonBorder.copy(brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -107,7 +107,7 @@ fun SettingsScreen(
         Text(
             "NFC Emulator v1.0.0 — GPL v3",
             style = MaterialTheme.typography.bodySmall,
-            color = NfcColors.TextSecondary
+            color = LocalAppColors.current.TextSecondary
         )
     }
 }
@@ -117,23 +117,23 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
             .padding(NfcDimensions.CardPadding)
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, color = NfcColors.Primary)
+        Text(title, style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.Primary)
         Spacer(modifier = Modifier.height(12.dp))
         content()
     }
 }
 
 @Composable
-private fun SettingsRow(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color = NfcColors.TextPrimary) {
+private fun SettingsRow(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color = LocalAppColors.current.TextPrimary) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextSecondary)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
         Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor)
     }
 }

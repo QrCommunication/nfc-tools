@@ -4,10 +4,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 val LocalIsDarkTheme = compositionLocalOf { true }
+val LocalAppColors = staticCompositionLocalOf<NfcColorPalette> { NfcColors }
 
 private val NfcDarkColorScheme = darkColorScheme(
     primary = NfcColors.Primary,
@@ -56,9 +59,11 @@ fun NfcEmulatorTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) NfcDarkColorScheme else NfcLightColorScheme
+    val appColors: NfcColorPalette = if (darkTheme) NfcColors else NfcLightColors
 
-    androidx.compose.runtime.CompositionLocalProvider(
-        LocalIsDarkTheme provides darkTheme
+    CompositionLocalProvider(
+        LocalIsDarkTheme provides darkTheme,
+        LocalAppColors provides appColors
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

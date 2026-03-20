@@ -58,7 +58,7 @@ import com.nfcemulator.ui.reader.ReaderScreen
 import com.nfcemulator.ui.settings.SettingsScreen
 import com.nfcemulator.ui.settings.SettingsViewModel
 import com.nfcemulator.ui.splash.SplashScreen
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.writer.WriteScreen
 import com.nfcemulator.ui.writer.WriteViewModel
 import kotlinx.coroutines.launch
@@ -111,18 +111,18 @@ fun NfcNavigation(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = NfcColors.Surface,
-                drawerContentColor = NfcColors.TextPrimary
+                drawerContainerColor = LocalAppColors.current.Surface,
+                drawerContentColor = LocalAppColors.current.TextPrimary
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(NfcColors.SurfaceVariant)
+                        .background(LocalAppColors.current.SurfaceVariant)
                         .padding(24.dp)
                 ) {
-                    Text("NFC Emulator", style = MaterialTheme.typography.headlineSmall, color = NfcColors.Primary)
+                    Text("NFC Emulator", style = MaterialTheme.typography.headlineSmall, color = LocalAppColors.current.Primary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = NfcColors.Secondary)
+                    Text("Read. Clone. Emulate.", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -134,13 +134,13 @@ fun NfcNavigation(
                                 Icon(
                                     item.icon,
                                     contentDescription = item.label,
-                                    tint = if (currentRoute == item.route) NfcColors.Primary else NfcColors.TextSecondary
+                                    tint = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextSecondary
                                 )
                             },
                             label = {
                                 Text(
                                     item.label,
-                                    color = if (currentRoute == item.route) NfcColors.Primary else NfcColors.TextPrimary
+                                    color = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextPrimary
                                 )
                             },
                             selected = currentRoute == item.route,
@@ -153,8 +153,8 @@ fun NfcNavigation(
                                 }
                             },
                             colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = NfcColors.Primary.copy(alpha = 0.1f),
-                                unselectedContainerColor = NfcColors.Surface
+                                selectedContainerColor = LocalAppColors.current.Primary.copy(alpha = 0.1f),
+                                unselectedContainerColor = LocalAppColors.current.Surface
                             ),
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
@@ -164,13 +164,13 @@ fun NfcNavigation(
         }
     ) {
         Scaffold(
-            containerColor = NfcColors.Background,
+            containerColor = LocalAppColors.current.Background,
             topBar = {
                 IconButton(
                     onClick = { scope.launch { drawerState.open() } },
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = NfcColors.Primary)
+                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = LocalAppColors.current.Primary)
                 }
             }
         ) { paddingValues ->

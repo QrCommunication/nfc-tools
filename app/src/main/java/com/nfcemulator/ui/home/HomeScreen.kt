@@ -24,7 +24,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import com.nfcemulator.ui.theme.NfcMonoStyles
 
@@ -47,13 +47,13 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(NfcColors.Background)
+                .background(LocalAppColors.current.Background)
                 .padding(NfcDimensions.Padding)
         ) {
             Text(
                 text = "NFC Emulator",
                 style = MaterialTheme.typography.headlineLarge,
-                color = NfcColors.Primary
+                color = LocalAppColors.current.Primary
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -64,15 +64,15 @@ fun HomeScreen(
                     searchQuery = it
                     onSearchQuery(it)
                 },
-                placeholder = { Text("Search tags...", color = NfcColors.TextSecondary) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = NfcColors.Primary) },
+                placeholder = { Text("Search tags...", color = LocalAppColors.current.TextSecondary) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = LocalAppColors.current.Primary) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NfcColors.Primary,
-                    unfocusedBorderColor = NfcColors.Border,
-                    cursorColor = NfcColors.Primary,
-                    focusedTextColor = NfcColors.TextPrimary,
-                    unfocusedTextColor = NfcColors.TextPrimary
+                    focusedBorderColor = LocalAppColors.current.Primary,
+                    unfocusedBorderColor = LocalAppColors.current.Border,
+                    cursorColor = LocalAppColors.current.Primary,
+                    focusedTextColor = LocalAppColors.current.TextPrimary,
+                    unfocusedTextColor = LocalAppColors.current.TextPrimary
                 ),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 singleLine = true
@@ -83,9 +83,9 @@ fun HomeScreen(
             if (tags.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No tags saved", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextSecondary)
+                        Text("No tags saved", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Read a tag or import a dump file", style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextSecondary)
+                        Text("Read a tag or import a dump file", style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextSecondary)
                     }
                 }
             } else {
@@ -148,7 +148,7 @@ private fun ContextMenuOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background.copy(alpha = 0.85f))
+            .background(LocalAppColors.current.Background.copy(alpha = 0.85f))
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.Center
     ) {
@@ -157,8 +157,8 @@ private fun ContextMenuOverlay(
                 .padding(horizontal = 32.dp)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(NfcColors.Surface)
-                .border(1.dp, NfcColors.Primary.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .background(LocalAppColors.current.Surface)
+                .border(1.dp, LocalAppColors.current.Primary.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .clickable(enabled = false, onClick = {}),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -166,20 +166,20 @@ private fun ContextMenuOverlay(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(NfcColors.SurfaceVariant)
+                    .background(LocalAppColors.current.SurfaceVariant)
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     tag.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = NfcColors.TextPrimary
+                    color = LocalAppColors.current.TextPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     tag.uid,
                     style = NfcMonoStyles.uid.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize),
-                    color = NfcColors.Secondary
+                    color = LocalAppColors.current.Secondary
                 )
             }
 
@@ -187,28 +187,28 @@ private fun ContextMenuOverlay(
             ContextMenuItem(
                 icon = Icons.Default.PlayArrow,
                 label = "Emulate",
-                color = NfcColors.Primary,
+                color = LocalAppColors.current.Primary,
                 onClick = onEmulate
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Outlined.Edit,
                 label = "Hex Editor",
-                color = NfcColors.Primary,
+                color = LocalAppColors.current.Primary,
                 onClick = onEdit
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Default.Edit,
                 label = "Rename",
-                color = NfcColors.TextPrimary,
+                color = LocalAppColors.current.TextPrimary,
                 onClick = onRename
             )
             ContextMenuDivider()
             ContextMenuItem(
                 icon = Icons.Default.Delete,
                 label = "Delete",
-                color = NfcColors.Error,
+                color = LocalAppColors.current.Error,
                 onClick = onDelete
             )
         }
@@ -247,7 +247,7 @@ private fun ContextMenuItem(
 @Composable
 private fun ContextMenuDivider() {
     HorizontalDivider(
-        color = NfcColors.Border,
+        color = LocalAppColors.current.Border,
         thickness = 0.5.dp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
@@ -277,10 +277,10 @@ private fun TagCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(NfcDimensions.CornerRadius))
-            .background(NfcColors.Surface)
+            .background(LocalAppColors.current.Surface)
             .border(
                 NfcDimensions.BorderWidth,
-                if (isRenaming) NfcColors.Primary else NfcColors.Border,
+                if (isRenaming) LocalAppColors.current.Primary else LocalAppColors.current.Border,
                 RoundedCornerShape(NfcDimensions.CornerRadius)
             )
             .pointerInput(Unit) {
@@ -298,20 +298,20 @@ private fun TagCard(
                     BasicTextField(
                         value = renameText,
                         onValueChange = { renameText = it },
-                        textStyle = MaterialTheme.typography.titleMedium.copy(color = NfcColors.TextPrimary),
-                        cursorBrush = SolidColor(NfcColors.Primary),
+                        textStyle = MaterialTheme.typography.titleMedium.copy(color = LocalAppColors.current.TextPrimary),
+                        cursorBrush = SolidColor(LocalAppColors.current.Primary),
                         singleLine = true,
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(focusRequester)
-                            .background(NfcColors.SurfaceVariant, RoundedCornerShape(8.dp))
+                            .background(LocalAppColors.current.SurfaceVariant, RoundedCornerShape(8.dp))
                             .padding(horizontal = 8.dp, vertical = 6.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         Icons.Default.Check,
                         contentDescription = "Save",
-                        tint = NfcColors.Secondary,
+                        tint = LocalAppColors.current.Secondary,
                         modifier = Modifier
                             .size(24.dp)
                             .clickable {
@@ -324,7 +324,7 @@ private fun TagCard(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "Cancel",
-                        tint = NfcColors.TextSecondary,
+                        tint = LocalAppColors.current.TextSecondary,
                         modifier = Modifier
                             .size(24.dp)
                             .clickable { onRenameDismiss() }
@@ -334,7 +334,7 @@ private fun TagCard(
                 Text(
                     text = tag.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = NfcColors.TextPrimary,
+                    color = LocalAppColors.current.TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -343,13 +343,13 @@ private fun TagCard(
             Text(
                 text = "UID: ${tag.uid}",
                 style = NfcMonoStyles.uid.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize),
-                color = NfcColors.Secondary
+                color = LocalAppColors.current.Secondary
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = tag.type,
                 style = MaterialTheme.typography.bodySmall,
-                color = NfcColors.TextSecondary
+                color = LocalAppColors.current.TextSecondary
             )
             if (tag.keysTotal > 0) {
                 Spacer(modifier = Modifier.height(6.dp))
@@ -357,14 +357,14 @@ private fun TagCard(
                     LinearProgressIndicator(
                         progress = { tag.keysFound.toFloat() / tag.keysTotal },
                         modifier = Modifier.weight(1f).height(4.dp),
-                        color = NfcColors.Secondary,
-                        trackColor = NfcColors.SurfaceVariant
+                        color = LocalAppColors.current.Secondary,
+                        trackColor = LocalAppColors.current.SurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "${tag.keysFound}/${tag.keysTotal}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = NfcColors.TextSecondary
+                        color = LocalAppColors.current.TextSecondary
                     )
                 }
             }
@@ -373,7 +373,7 @@ private fun TagCard(
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "Menu",
-                tint = NfcColors.TextSecondary,
+                tint = LocalAppColors.current.TextSecondary,
                 modifier = Modifier
                     .size(24.dp)
                     .clickable { onLongPress() }

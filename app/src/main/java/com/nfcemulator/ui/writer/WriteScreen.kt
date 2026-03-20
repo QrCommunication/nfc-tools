@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nfcemulator.ui.home.TagUiModel
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import com.nfcemulator.ui.theme.NfcMonoStyles
 
@@ -31,18 +31,18 @@ fun WriteScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background)
+            .background(LocalAppColors.current.Background)
             .padding(NfcDimensions.Padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Write to Card", style = MaterialTheme.typography.headlineLarge, color = NfcColors.Accent)
+        Text("Write to Card", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Accent)
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             "Clone a saved tag to a blank magic card",
             style = MaterialTheme.typography.bodySmall,
-            color = NfcColors.TextSecondary
+            color = LocalAppColors.current.TextSecondary
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -51,16 +51,16 @@ fun WriteScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-                    .border(NfcDimensions.BorderWidth, NfcColors.Accent, RoundedCornerShape(NfcDimensions.CornerRadius))
+                    .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+                    .border(NfcDimensions.BorderWidth, LocalAppColors.current.Accent, RoundedCornerShape(NfcDimensions.CornerRadius))
                     .padding(NfcDimensions.CardPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Selected:", style = MaterialTheme.typography.labelSmall, color = NfcColors.TextSecondary)
+                Text("Selected:", style = MaterialTheme.typography.labelSmall, color = LocalAppColors.current.TextSecondary)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(selectedTag.name, style = MaterialTheme.typography.titleMedium, color = NfcColors.TextPrimary)
-                Text("UID: ${selectedTag.uid}", style = NfcMonoStyles.uid.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize), color = NfcColors.Secondary)
-                Text(selectedTag.type, style = MaterialTheme.typography.bodySmall, color = NfcColors.TextSecondary)
+                Text(selectedTag.name, style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextPrimary)
+                Text("UID: ${selectedTag.uid}", style = NfcMonoStyles.uid.copy(fontSize = MaterialTheme.typography.bodySmall.fontSize), color = LocalAppColors.current.Secondary)
+                Text(selectedTag.type, style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -70,7 +70,7 @@ fun WriteScreen(
             Button(
                 onClick = if (isWaiting) onCancelWrite else onStartWrite,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isWaiting) NfcColors.Error else NfcColors.Accent
+                    containerColor = if (isWaiting) LocalAppColors.current.Error else LocalAppColors.current.Accent
                 ),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier
@@ -80,17 +80,17 @@ fun WriteScreen(
                 Text(
                     if (isWaiting) "Cancel" else "Write to Magic Tag",
                     style = MaterialTheme.typography.titleMedium,
-                    color = NfcColors.Background
+                    color = LocalAppColors.current.Background
                 )
             }
 
             if (writeProgress.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 val color = when {
-                    writeProgress.contains("Error") || writeProgress.contains("Cannot") || writeProgress.contains("Failed") -> NfcColors.Error
-                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> NfcColors.Secondary
-                    writeProgress.contains("Waiting") -> NfcColors.Warning
-                    else -> NfcColors.Accent
+                    writeProgress.contains("Error") || writeProgress.contains("Cannot") || writeProgress.contains("Failed") -> LocalAppColors.current.Error
+                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> LocalAppColors.current.Secondary
+                    writeProgress.contains("Waiting") -> LocalAppColors.current.Warning
+                    else -> LocalAppColors.current.Accent
                 }
                 Text(writeProgress, style = MaterialTheme.typography.bodyMedium, color = color)
             }
@@ -100,7 +100,7 @@ fun WriteScreen(
             Text(
                 "Select another tag:",
                 style = MaterialTheme.typography.labelMedium,
-                color = NfcColors.TextSecondary,
+                color = LocalAppColors.current.TextSecondary,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -109,7 +109,7 @@ fun WriteScreen(
             Text(
                 "Select a tag to write:",
                 style = MaterialTheme.typography.titleMedium,
-                color = NfcColors.TextSecondary
+                color = LocalAppColors.current.TextSecondary
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -121,10 +121,10 @@ fun WriteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(NfcDimensions.CornerRadiusSmall))
-                        .background(if (isSelected) NfcColors.SurfaceVariant else NfcColors.Surface)
+                        .background(if (isSelected) LocalAppColors.current.SurfaceVariant else LocalAppColors.current.Surface)
                         .border(
                             NfcDimensions.BorderWidth,
-                            if (isSelected) NfcColors.Accent else NfcColors.Border,
+                            if (isSelected) LocalAppColors.current.Accent else LocalAppColors.current.Border,
                             RoundedCornerShape(NfcDimensions.CornerRadiusSmall)
                         )
                         .clickable { onSelectTag(tag) }
@@ -132,10 +132,10 @@ fun WriteScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(tag.name, style = MaterialTheme.typography.bodyMedium, color = NfcColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("UID: ${tag.uid}", style = MaterialTheme.typography.bodySmall, color = NfcColors.TextSecondary)
+                        Text(tag.name, style = MaterialTheme.typography.bodyMedium, color = LocalAppColors.current.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("UID: ${tag.uid}", style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
                     }
-                    Text(tag.type, style = MaterialTheme.typography.labelSmall, color = NfcColors.TextSecondary)
+                    Text(tag.type, style = MaterialTheme.typography.labelSmall, color = LocalAppColors.current.TextSecondary)
                 }
             }
         }

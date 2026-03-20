@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nfcemulator.ui.home.TagUiModel
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import com.nfcemulator.ui.theme.NfcMonoStyles
 
@@ -31,22 +31,22 @@ fun EmulatorScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background)
+            .background(LocalAppColors.current.Background)
             .padding(NfcDimensions.Padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Emulate", style = MaterialTheme.typography.headlineLarge, color = NfcColors.Primary)
+        Text("Emulate", style = MaterialTheme.typography.headlineLarge, color = LocalAppColors.current.Primary)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Surface(
-            color = NfcColors.SurfaceVariant,
+            color = LocalAppColors.current.SurfaceVariant,
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
                 text = emulationMode,
                 style = MaterialTheme.typography.labelMedium,
-                color = if (emulationMode.contains("Full")) NfcColors.RootActive else NfcColors.HceOnly,
+                color = if (emulationMode.contains("Full")) LocalAppColors.current.RootActive else LocalAppColors.current.HceOnly,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
             )
         }
@@ -57,26 +57,26 @@ fun EmulatorScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+                    .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
                     .border(
                         NfcDimensions.BorderWidth,
-                        if (isEmulating) NfcColors.EmulationActive else NfcColors.Border,
+                        if (isEmulating) LocalAppColors.current.EmulationActive else LocalAppColors.current.Border,
                         RoundedCornerShape(NfcDimensions.CornerRadius)
                     )
                     .padding(NfcDimensions.CardPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(selectedTag.name, style = MaterialTheme.typography.titleLarge, color = NfcColors.TextPrimary)
+                Text(selectedTag.name, style = MaterialTheme.typography.titleLarge, color = LocalAppColors.current.TextPrimary)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("UID: ${selectedTag.uid}", style = NfcMonoStyles.uid, color = NfcColors.Secondary)
+                Text("UID: ${selectedTag.uid}", style = NfcMonoStyles.uid, color = LocalAppColors.current.Secondary)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(selectedTag.type, style = MaterialTheme.typography.bodySmall, color = NfcColors.TextSecondary)
+                Text(selectedTag.type, style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.TextSecondary)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             val buttonColor by animateColorAsState(
-                targetValue = if (isEmulating) NfcColors.Error else NfcColors.Primary,
+                targetValue = if (isEmulating) LocalAppColors.current.Error else LocalAppColors.current.Primary,
                 label = "buttonColor"
             )
 
@@ -89,17 +89,17 @@ fun EmulatorScreen(
                 Text(
                     text = if (isEmulating) "STOP" else "START",
                     style = MaterialTheme.typography.titleLarge,
-                    color = NfcColors.Background
+                    color = LocalAppColors.current.Background
                 )
             }
 
             if (statusMessage.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 val messageColor = when {
-                    statusMessage.startsWith("Error") -> NfcColors.Error
-                    statusMessage.startsWith("Unsupported") -> NfcColors.Warning
-                    statusMessage.contains("active") -> NfcColors.EmulationActive
-                    else -> NfcColors.TextSecondary
+                    statusMessage.startsWith("Error") -> LocalAppColors.current.Error
+                    statusMessage.startsWith("Unsupported") -> LocalAppColors.current.Warning
+                    statusMessage.contains("active") -> LocalAppColors.current.EmulationActive
+                    else -> LocalAppColors.current.TextSecondary
                 }
                 Text(statusMessage, style = MaterialTheme.typography.bodyMedium, color = messageColor)
             }
@@ -108,9 +108,9 @@ fun EmulatorScreen(
 
             OutlinedButton(
                 onClick = onWriteToTag,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Accent),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Accent),
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Accent)
+                    brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Accent)
                 ),
                 shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                 modifier = Modifier
@@ -123,21 +123,21 @@ fun EmulatorScreen(
             if (writeProgress.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 val wpColor = when {
-                    writeProgress.startsWith("Error") || writeProgress.startsWith("Cannot") || writeProgress.startsWith("Failed") -> NfcColors.Error
-                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> NfcColors.Secondary
-                    writeProgress.contains("Waiting") -> NfcColors.Warning
-                    else -> NfcColors.Accent
+                    writeProgress.startsWith("Error") || writeProgress.startsWith("Cannot") || writeProgress.startsWith("Failed") -> LocalAppColors.current.Error
+                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> LocalAppColors.current.Secondary
+                    writeProgress.contains("Waiting") -> LocalAppColors.current.Warning
+                    else -> LocalAppColors.current.Accent
                 }
                 Text(writeProgress, style = MaterialTheme.typography.bodySmall, color = wpColor)
             }
         } else {
-            Text("No tag selected", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextSecondary)
+            Text("No tag selected", style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
                 onClick = onSelectTag,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+                    brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
                 )
             ) {
                 Text("Select a tag")

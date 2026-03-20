@@ -17,7 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.nfc.reader.ReadProgress
-import com.nfcemulator.ui.theme.NfcColors
+import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.theme.NfcDimensions
 import com.nfcemulator.ui.theme.NfcMonoStyles
 
@@ -32,7 +32,7 @@ fun ReaderScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NfcColors.Background)
+            .background(LocalAppColors.current.Background)
             .padding(NfcDimensions.Padding)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -40,7 +40,7 @@ fun ReaderScreen(
         Text(
             text = "Read Tag",
             style = MaterialTheme.typography.headlineLarge,
-            color = NfcColors.Primary
+            color = LocalAppColors.current.Primary
         )
 
         Spacer(modifier = Modifier.height(48.dp))
@@ -54,14 +54,14 @@ fun ReaderScreen(
                 Text(
                     "Hold your device near an NFC tag",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = NfcColors.TextSecondary
+                    color = LocalAppColors.current.TextSecondary
                 )
                 Spacer(modifier = Modifier.height(48.dp))
                 OutlinedButton(
                     onClick = onImportClick,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+                        brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
                     ),
                     shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                     modifier = Modifier.fillMaxWidth(0.7f)
@@ -73,27 +73,27 @@ fun ReaderScreen(
                 Text(
                     "Reading sector ${readProgress.sector}/${readProgress.total}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = NfcColors.Primary
+                    color = LocalAppColors.current.Primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { readProgress.sector.toFloat() / readProgress.total },
                     modifier = Modifier.fillMaxWidth(0.6f),
-                    color = NfcColors.Primary,
-                    trackColor = NfcColors.SurfaceVariant
+                    color = LocalAppColors.current.Primary,
+                    trackColor = LocalAppColors.current.SurfaceVariant
                 )
             }
             is ReadProgress.KeyTesting -> {
                 Text(
                     "Testing keys for sector ${readProgress.sector}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = NfcColors.Warning
+                    color = LocalAppColors.current.Warning
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "${readProgress.keysTestedCount} keys tested",
                     style = MaterialTheme.typography.bodySmall,
-                    color = NfcColors.TextSecondary
+                    color = LocalAppColors.current.TextSecondary
                 )
             }
             is ReadProgress.Complete -> {
@@ -108,14 +108,14 @@ fun ReaderScreen(
                 Text(
                     "Error: ${readProgress.message}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = NfcColors.Error
+                    color = LocalAppColors.current.Error
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 OutlinedButton(
                     onClick = onReset,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+                        brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
                     ),
                     shape = RoundedCornerShape(NfcDimensions.CornerRadius),
                     modifier = Modifier.fillMaxWidth(0.7f)
@@ -141,7 +141,7 @@ private fun CompleteContent(
     Text(
         "Tag read successfully!",
         style = MaterialTheme.typography.titleMedium,
-        color = NfcColors.Secondary
+        color = LocalAppColors.current.Secondary
     )
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -150,28 +150,28 @@ private fun CompleteContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-            .border(NfcDimensions.BorderWidth, NfcColors.Secondary, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .border(NfcDimensions.BorderWidth, LocalAppColors.current.Secondary, RoundedCornerShape(NfcDimensions.CornerRadius))
             .padding(NfcDimensions.CardPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             dump.uidHex,
             style = NfcMonoStyles.uid,
-            color = NfcColors.Secondary
+            color = LocalAppColors.current.Secondary
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             dump.type.displayName,
             style = MaterialTheme.typography.bodyMedium,
-            color = NfcColors.TextSecondary
+            color = LocalAppColors.current.TextSecondary
         )
         if (dump.sectors.isNotEmpty()) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "${dump.sectors.size} sectors",
                 style = MaterialTheme.typography.bodySmall,
-                color = NfcColors.TextSecondary
+                color = LocalAppColors.current.TextSecondary
             )
         }
         if (dump.totalKeys > 0) {
@@ -184,20 +184,20 @@ private fun CompleteContent(
                 Text(
                     "Keys",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = NfcColors.TextSecondary
+                    color = LocalAppColors.current.TextSecondary
                 )
                 Text(
                     "${dump.foundKeys}/${dump.totalKeys}",
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (allKeysFound) NfcColors.KeyFound else NfcColors.Warning
+                    color = if (allKeysFound) LocalAppColors.current.KeyFound else LocalAppColors.current.Warning
                 )
             }
             Spacer(modifier = Modifier.height(6.dp))
             LinearProgressIndicator(
                 progress = { dump.decryptionProgress },
                 modifier = Modifier.fillMaxWidth().height(6.dp),
-                color = if (allKeysFound) NfcColors.KeyFound else NfcColors.Warning,
-                trackColor = NfcColors.SurfaceVariant
+                color = if (allKeysFound) LocalAppColors.current.KeyFound else LocalAppColors.current.Warning,
+                trackColor = LocalAppColors.current.SurfaceVariant
             )
         }
     }
@@ -208,14 +208,14 @@ private fun CompleteContent(
         Text(
             "${dump.totalKeys - dump.foundKeys} keys remaining — try extended dictionaries?",
             style = MaterialTheme.typography.bodySmall,
-            color = NfcColors.TextSecondary
+            color = LocalAppColors.current.TextSecondary
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(
             onClick = { onCrackKeys(dump) },
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Warning),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Warning),
             border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Warning)
+                brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Warning)
             ),
             shape = RoundedCornerShape(NfcDimensions.CornerRadius),
             modifier = Modifier.fillMaxWidth(0.7f)
@@ -230,8 +230,8 @@ private fun CompleteContent(
     Button(
         onClick = { onSaveTag(dump) },
         colors = ButtonDefaults.buttonColors(
-            containerColor = NfcColors.Primary,
-            contentColor = NfcColors.Background
+            containerColor = LocalAppColors.current.Primary,
+            contentColor = LocalAppColors.current.Background
         ),
         shape = RoundedCornerShape(NfcDimensions.CornerRadius),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
@@ -243,9 +243,9 @@ private fun CompleteContent(
 
     OutlinedButton(
         onClick = onReset,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
         border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-            brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+            brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
         ),
         shape = RoundedCornerShape(NfcDimensions.CornerRadius),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
@@ -280,9 +280,9 @@ private fun NfcPulseAnimation(readProgress: ReadProgress) {
     )
 
     val color = when (readProgress) {
-        is ReadProgress.Complete -> NfcColors.Secondary
-        is ReadProgress.Error -> NfcColors.Error
-        else -> NfcColors.Primary
+        is ReadProgress.Complete -> LocalAppColors.current.Secondary
+        is ReadProgress.Error -> LocalAppColors.current.Error
+        else -> LocalAppColors.current.Primary
     }
 
     val labelText = when (readProgress) {
