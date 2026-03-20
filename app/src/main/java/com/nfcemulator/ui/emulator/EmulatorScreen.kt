@@ -1,7 +1,6 @@
 package com.nfcemulator.ui.emulator
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.theme.NfcColors
@@ -23,6 +21,7 @@ fun EmulatorScreen(
     selectedTag: TagUiModel?,
     isEmulating: Boolean,
     emulationMode: String,
+    statusMessage: String = "",
     onStartEmulation: () -> Unit,
     onStopEmulation: () -> Unit,
     onSelectTag: () -> Unit
@@ -57,7 +56,11 @@ fun EmulatorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(NfcColors.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-                    .border(NfcDimensions.BorderWidth, if (isEmulating) NfcColors.EmulationActive else NfcColors.Border, RoundedCornerShape(NfcDimensions.CornerRadius))
+                    .border(
+                        NfcDimensions.BorderWidth,
+                        if (isEmulating) NfcColors.EmulationActive else NfcColors.Border,
+                        RoundedCornerShape(NfcDimensions.CornerRadius)
+                    )
                     .padding(NfcDimensions.CardPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -88,9 +91,15 @@ fun EmulatorScreen(
                 )
             }
 
-            if (isEmulating) {
+            if (statusMessage.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Emulation active — hold phone near reader", style = MaterialTheme.typography.bodyMedium, color = NfcColors.EmulationActive)
+                val messageColor = when {
+                    statusMessage.startsWith("Error") -> NfcColors.Error
+                    statusMessage.startsWith("Unsupported") -> NfcColors.Warning
+                    statusMessage.contains("active") -> NfcColors.EmulationActive
+                    else -> NfcColors.TextSecondary
+                }
+                Text(statusMessage, style = MaterialTheme.typography.bodyMedium, color = messageColor)
             }
         } else {
             Text("No tag selected", style = MaterialTheme.typography.titleMedium, color = NfcColors.TextSecondary)
@@ -98,7 +107,9 @@ fun EmulatorScreen(
             OutlinedButton(
                 onClick = onSelectTag,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = NfcColors.Primary),
-                border = ButtonDefaults.outlinedButtonBorder.copy(brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary))
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(NfcColors.Primary)
+                )
             ) {
                 Text("Select a tag")
             }

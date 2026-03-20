@@ -20,6 +20,7 @@ import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.ui.editor.EditorScreen
 import com.nfcemulator.ui.emulator.EmulatorScreen
+import com.nfcemulator.ui.emulator.EmulatorViewModel
 import com.nfcemulator.ui.home.HomeScreen
 import com.nfcemulator.ui.home.HomeViewModel
 import com.nfcemulator.ui.home.TagUiModel
@@ -41,24 +42,21 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 @Composable
 fun NfcNavigation(
     readProgress: ReadProgress,
-    isEmulating: Boolean,
-    emulationMode: String,
     onImportClick: () -> Unit,
     onSaveTag: (TagDump) -> Unit,
     onResetReader: () -> Unit,
-    onCrackKeys: (TagDump) -> Unit,
-    onStartEmulation: (TagUiModel) -> Unit,
-    onStopEmulation: () -> Unit
+    onCrackKeys: (TagDump) -> Unit
 ) {
     val navController = rememberNavController()
     val screens = listOf(Screen.Home, Screen.Reader, Screen.Emulator, Screen.Editor, Screen.Settings)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    var selectedTagForEmulation by remember { mutableStateOf<TagUiModel?>(null) }
+    // EmulatorViewModel is shared — survives rotation
+    val emulatorViewModel: EmulatorViewModel = koinViewModel()
+
     var selectedDumpForEditor by remember { mutableStateOf<TagDump?>(null) }
 
-    // When a tag is read successfully, keep it for editor
     LaunchedEffect(readProgress) {
         if (readProgress is ReadProgress.Complete) {
             selectedDumpForEditor = readProgress.dump
@@ -111,7 +109,7 @@ fun NfcNavigation(
                     onTagClick = { tagId ->
                         val tag = tags.find { it.id == tagId }
                         if (tag != null) {
-                            selectedTagForEmulation = tag
+                            emulatorViewModel.selectTag(tag)
                             navController.navigate(Screen.Emulator.route) {
                                 launchSingleTop = true
                             }
@@ -120,13 +118,13 @@ fun NfcNavigation(
                     onEmulateTag = { tagId ->
                         val tag = tags.find { it.id == tagId }
                         if (tag != null) {
-                            selectedTagForEmulation = tag
+                            emulatorViewModel.selectTag(tag)
                             navController.navigate(Screen.Emulator.route) {
                                 launchSingleTop = true
                             }
                         }
                     },
-                    onEditTag = { tagId ->
+                    onEditTag = {
                         navController.navigate(Screen.Editor.route) {
                             launchSingleTop = true
                         }
@@ -147,14 +145,14 @@ fun NfcNavigation(
                 )
             }
             composable(Screen.Emulator.route) {
+                val state by emulatorViewModel.uiState.collectAsState()
                 EmulatorScreen(
-                    selectedTag = selectedTagForEmulation,
-                    isEmulating = isEmulating,
-                    emulationMode = emulationMode,
-                    onStartEmulation = {
-                        selectedTagForEmulation?.let { onStartEmulation(it) }
-                    },
-                    onStopEmulation = onStopEmulation,
+                    selectedTag = state.selectedTag,
+                    isEmulating = state.isEmulating,
+                    emulationMode = state.emulationMode,
+                    statusMessage = state.statusMessage,
+                    onStartEmulation = { emulatorViewModel.startEmulation() },
+                    onStopEmulation = { emulatorViewModel.stopEmulation() },
                     onSelectTag = {
                         navController.navigate(Screen.Home.route) {
                             launchSingleTop = true

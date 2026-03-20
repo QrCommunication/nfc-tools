@@ -14,21 +14,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.lifecycle.lifecycleScope
 import com.nfcemulator.dump.analyzer.DictionaryManager
-import com.nfcemulator.dump.analyzer.KeyCracker
 import com.nfcemulator.dump.model.TagDump
-import com.nfcemulator.dump.model.TagType
-import com.nfcemulator.dump.model.DumpFormat
 import com.nfcemulator.dump.parser.DumpParserFactory
-import com.nfcemulator.nfc.hal.NfcEmulatorHal
-import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.nfc.reader.TagReader
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.TagDao
 import com.nfcemulator.ui.NfcNavigation
-import com.nfcemulator.ui.home.TagUiModel
 import com.nfcemulator.ui.theme.NfcEmulatorTheme
 import com.nfcemulator.util.TagMapper
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -37,15 +30,11 @@ class MainActivity : ComponentActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private val tagReader: TagReader by inject()
     private val dictionaryManager: DictionaryManager by inject()
-    private val keyCracker: KeyCracker by inject()
     private val dumpParserFactory: DumpParserFactory by inject()
     private val encryptedFileManager: EncryptedFileManager by inject()
     private val tagDao: TagDao by inject()
-    private val nfcHal: NfcEmulatorHal by inject()
 
     private var lastReadTag: Tag? = null
-    private val _isEmulating = MutableStateFlow(false)
-    private val _emulationMode = MutableStateFlow("HCE Standard (Limited)")
 
     private val importFileLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -61,28 +50,20 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             dictionaryManager.loadDictionaries()
-            val capabilities = nfcHal.getCapabilities()
-            _emulationMode.value = capabilities.emulationMode.displayName
         }
 
         setContent {
             NfcEmulatorTheme {
                 val readProgress by tagReader.progress.collectAsState()
-                val isEmulating by nfcHal.isEmulating.collectAsState()
-                val emulationMode by _emulationMode.collectAsState()
 
                 NfcNavigation(
                     readProgress = readProgress,
-                    isEmulating = isEmulating,
-                    emulationMode = emulationMode,
                     onImportClick = {
                         importFileLauncher.launch(arrayOf("*/*"))
                     },
                     onSaveTag = { dump -> saveTag(dump) },
                     onResetReader = { tagReader.reset() },
-                    onCrackKeys = { dump -> crackRemainingKeys(dump) },
-                    onStartEmulation = { tagUiModel -> startEmulation(tagUiModel) },
-                    onStopEmulation = { stopEmulation() }
+                    onCrackKeys = { dump -> crackRemainingKeys(dump) }
                 )
             }
         }
@@ -134,29 +115,6 @@ class MainActivity : ComponentActivity() {
             tagReader.reset()
             val allKeys = dictionaryManager.getAllKeys()
             tagReader.readTag(tag, allKeys)
-        }
-    }
-
-    private fun startEmulation(tagUiModel: TagUiModel) {
-        lifecycleScope.launch {
-            val rawData = encryptedFileManager.loadDump(tagUiModel.id)
-            if (rawData != null) {
-                val dump = TagDump(
-                    id = tagUiModel.id,
-                    name = tagUiModel.name,
-                    type = TagType.entries.find { it.displayName == tagUiModel.type } ?: TagType.UNKNOWN,
-                    uid = tagUiModel.uid.split(":").map { it.toInt(16).toByte() }.toByteArray(),
-                    rawData = rawData,
-                    sourceFormat = DumpFormat.JSON
-                )
-                nfcHal.startEmulation(dump)
-            }
-        }
-    }
-
-    private fun stopEmulation() {
-        lifecycleScope.launch {
-            nfcHal.stopEmulation()
         }
     }
 

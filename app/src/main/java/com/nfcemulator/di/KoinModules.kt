@@ -11,6 +11,7 @@ import com.nfcemulator.nfc.reader.TagReader
 import com.nfcemulator.storage.CryptoManager
 import com.nfcemulator.storage.EncryptedFileManager
 import com.nfcemulator.storage.local.AppDatabase
+import com.nfcemulator.ui.emulator.EmulatorViewModel
 import com.nfcemulator.ui.home.HomeViewModel
 import com.nfcemulator.ui.settings.SettingsViewModel
 import com.topjohnwu.superuser.Shell
@@ -45,6 +46,7 @@ val nfcModule = module {
 
 val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
+    viewModel { EmulatorViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get()) }
 }
 
