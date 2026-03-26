@@ -24,7 +24,6 @@ class TagWriter {
     private val _progress = MutableStateFlow<WriteProgress>(WriteProgress.Idle)
     val progress: StateFlow<WriteProgress> = _progress.asStateFlow()
 
-    // Store the dump to write — set before startWaiting()
     var pendingDump: TagDump? = null
         private set
 
@@ -61,22 +60,30 @@ class TagWriter {
             return false
         }
 
+        val defaultKey = byteArrayOf(
+            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
+            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        )
+
         var sectorsWritten = 0
         val totalSectors = dump.sectors.size
 
+        if (totalSectors == 0) {
+            _progress.value = WriteProgress.Error("No sectors to write — dump is empty")
+            return false
+        }
+
         try {
             mfc.connect()
+            mfc.setTimeout(5000)
 
-            // Step 1: Try to write UID (block 0) — only works on "magic" Gen1a/Gen2 tags
+            // Step 1: Try to write block 0 (UID) — optional, don't stop if it fails
             val block0Data = dump.sectors.firstOrNull()?.blocks?.firstOrNull()?.data
             if (block0Data != null && block0Data.size == 16) {
-                val uidWritten = writeBlock0Magic(tag, mfc, block0Data)
+                val uidWritten = writeBlock0Magic(tag, mfc, block0Data, defaultKey)
                 if (!uidWritten) {
-                    _progress.value = WriteProgress.Error(
-                        "Cannot write UID — this is not a magic tag (Gen1a/Gen2). " +
-                        "Use a UID-modifiable tag."
-                    )
-                    return false
+                    // Not a magic tag for UID — continue writing data sectors anyway
+                    ensureConnected(mfc)
                 }
             }
 
@@ -84,78 +91,105 @@ class TagWriter {
             for (sector in dump.sectors) {
                 _progress.value = WriteProgress.Writing(sector.index, totalSectors)
 
-                // Authenticate with known keys
-                val defaultKey = byteArrayOf(
-                    0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-                    0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
-                )
-
+                // On a blank CUID card, all keys are FFFFFFFFFFFF
+                // Try default key first (blank card), then dump keys (if card was already written)
                 var authenticated = false
 
-                // Try key A from dump
-                val keyA = sector.keyA
-                if (keyA != null) {
-                    try {
-                        if (mfc.authenticateSectorWithKeyA(sector.index, keyA)) {
-                            authenticated = true
-                        }
-                    } catch (_: Exception) {}
+                // Try default key A (blank CUID card)
+                try {
+                    ensureConnected(mfc)
+                    if (mfc.authenticateSectorWithKeyA(sector.index, defaultKey)) {
+                        authenticated = true
+                    }
+                } catch (_: Exception) {
+                    reconnect(mfc)
                 }
 
-                // Try key B from dump
+                // Try default key B
+                if (!authenticated) {
+                    try {
+                        ensureConnected(mfc)
+                        if (mfc.authenticateSectorWithKeyB(sector.index, defaultKey)) {
+                            authenticated = true
+                        }
+                    } catch (_: Exception) {
+                        reconnect(mfc)
+                    }
+                }
+
+                // Try dump key A
+                if (!authenticated) {
+                    val keyA = sector.keyA
+                    if (keyA != null) {
+                        try {
+                            ensureConnected(mfc)
+                            if (mfc.authenticateSectorWithKeyA(sector.index, keyA)) {
+                                authenticated = true
+                            }
+                        } catch (_: Exception) {
+                            reconnect(mfc)
+                        }
+                    }
+                }
+
+                // Try dump key B
                 if (!authenticated) {
                     val keyB = sector.keyB
                     if (keyB != null) {
                         try {
+                            ensureConnected(mfc)
                             if (mfc.authenticateSectorWithKeyB(sector.index, keyB)) {
                                 authenticated = true
                             }
-                        } catch (_: Exception) {}
+                        } catch (_: Exception) {
+                            reconnect(mfc)
+                        }
                     }
                 }
 
-                // Try default key
                 if (!authenticated) {
-                    try {
-                        if (mfc.authenticateSectorWithKeyA(sector.index, defaultKey)) {
-                            authenticated = true
-                        }
-                    } catch (_: Exception) {}
-                }
-
-                if (!authenticated) {
-                    try {
-                        if (mfc.authenticateSectorWithKeyB(sector.index, defaultKey)) {
-                            authenticated = true
-                        }
-                    } catch (_: Exception) {}
-                }
-
-                if (!authenticated) {
-                    // Skip this sector but continue with others
                     continue
                 }
 
                 // Write blocks in this sector
                 val firstBlock = mfc.sectorToBlock(sector.index)
-                for (block in sector.blocks) {
-                    // Skip block 0 of sector 0 (already written via magic command)
-                    if (block.index == 0) continue
+                var blocksWritten = 0
+
+                for ((blockIdx, block) in sector.blocks.withIndex()) {
+                    // Skip block 0 (UID) — already handled
+                    if (sector.index == 0 && blockIdx == 0) continue
+
+                    val absoluteBlock = firstBlock + blockIdx
 
                     try {
-                        mfc.writeBlock(firstBlock + (block.index - sector.blocks.first().index), block.data)
-                    } catch (e: Exception) {
-                        // Trailer blocks may fail to write on non-magic tags — continue
-                        if (!block.isTrailerBlock) {
-                            _progress.value = WriteProgress.Error(
-                                "Failed to write block ${block.index}: ${e.message}"
-                            )
-                            return false
+                        // Re-authenticate before each write
+                        ensureConnected(mfc)
+                        val authOk = mfc.authenticateSectorWithKeyA(sector.index, defaultKey) ||
+                            mfc.authenticateSectorWithKeyB(sector.index, defaultKey)
+
+                        if (authOk) {
+                            mfc.writeBlock(absoluteBlock, block.data)
+                            blocksWritten++
                         }
+                    } catch (e: Exception) {
+                        // Trailer block write may fail — that's OK on some cards
+                        if (block.isTrailerBlock) {
+                            // Try writing trailer anyway with different auth
+                            try {
+                                reconnect(mfc)
+                                if (mfc.authenticateSectorWithKeyA(sector.index, defaultKey)) {
+                                    mfc.writeBlock(absoluteBlock, block.data)
+                                    blocksWritten++
+                                }
+                            } catch (_: Exception) {}
+                        }
+                        reconnect(mfc)
                     }
                 }
 
-                sectorsWritten++
+                if (blocksWritten > 0) {
+                    sectorsWritten++
+                }
             }
 
             _progress.value = WriteProgress.Complete(sectorsWritten, totalSectors)
@@ -168,13 +202,10 @@ class TagWriter {
         }
     }
 
-    private fun writeBlock0Magic(tag: Tag, mfc: MifareClassic, block0: ByteArray): Boolean {
-        // Method 1: Direct write (Gen2 / CUID magic tags)
+    private fun writeBlock0Magic(tag: Tag, mfc: MifareClassic, block0: ByteArray, defaultKey: ByteArray): Boolean {
+        // Method 1: Direct write on CUID/Gen2 — authenticate then write block 0
         try {
-            val defaultKey = byteArrayOf(
-                0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-                0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
-            )
+            ensureConnected(mfc)
             if (mfc.authenticateSectorWithKeyA(0, defaultKey)) {
                 mfc.writeBlock(0, block0)
                 return true
@@ -183,44 +214,52 @@ class TagWriter {
 
         // Method 2: Gen1a magic backdoor via NfcA raw commands
         try {
-            mfc.close()
+            try { mfc.close() } catch (_: Exception) {}
             val nfcA = NfcA.get(tag) ?: return false
             nfcA.connect()
-            nfcA.timeout = 1000
+            nfcA.timeout = 2000
 
-            // Gen1a unlock: send HALT then magic wakeup bytes
             try {
-                // Magic wakeup sequence for Gen1a
-                val halt = byteArrayOf(0x50.toByte(), 0x00.toByte())
-                try { nfcA.transceive(halt) } catch (_: Exception) {}
+                // HALT
+                try { nfcA.transceive(byteArrayOf(0x50.toByte(), 0x00.toByte())) } catch (_: Exception) {}
 
-                // Chinese magic backdoor command
-                val unlock1 = byteArrayOf(0x40.toByte())
-                val response1 = nfcA.transceive(unlock1)
-
+                // Magic wakeup
+                val response1 = nfcA.transceive(byteArrayOf(0x40.toByte()))
                 if (response1.isNotEmpty()) {
-                    val unlock2 = byteArrayOf(0x43.toByte())
-                    nfcA.transceive(unlock2)
+                    nfcA.transceive(byteArrayOf(0x43.toByte()))
 
                     // Write block 0
-                    val writeCmd = ByteArray(2)
-                    writeCmd[0] = 0xA0.toByte() // WRITE command
-                    writeCmd[1] = 0x00.toByte() // Block 0
-                    nfcA.transceive(writeCmd)
+                    nfcA.transceive(byteArrayOf(0xA0.toByte(), 0x00.toByte()))
                     nfcA.transceive(block0)
 
                     nfcA.close()
-                    mfc.connect() // Reconnect MifareClassic for remaining writes
+                    mfc.connect()
+                    mfc.setTimeout(5000)
                     return true
                 }
             } catch (_: Exception) {}
 
-            nfcA.close()
-            mfc.connect()
+            try { nfcA.close() } catch (_: Exception) {}
+            try { mfc.connect(); mfc.setTimeout(5000) } catch (_: Exception) {}
         } catch (_: Exception) {
-            try { mfc.connect() } catch (_: Exception) {}
+            try { mfc.connect(); mfc.setTimeout(5000) } catch (_: Exception) {}
         }
 
         return false
+    }
+
+    private fun ensureConnected(mfc: MifareClassic) {
+        if (!mfc.isConnected) {
+            mfc.connect()
+            mfc.setTimeout(5000)
+        }
+    }
+
+    private fun reconnect(mfc: MifareClassic) {
+        try { mfc.close() } catch (_: Exception) {}
+        try {
+            mfc.connect()
+            mfc.setTimeout(5000)
+        } catch (_: Exception) {}
     }
 }
