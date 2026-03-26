@@ -39,12 +39,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nfcemulator.R
 import com.nfcemulator.dump.model.TagDump
 import com.nfcemulator.nfc.reader.ReadProgress
 import com.nfcemulator.ui.dashboard.DashboardScreen
@@ -58,8 +59,6 @@ import com.nfcemulator.ui.reader.ReaderScreen
 import com.nfcemulator.ui.settings.SettingsScreen
 import com.nfcemulator.ui.settings.SettingsViewModel
 import com.nfcemulator.ui.splash.SplashScreen
-import androidx.compose.ui.res.stringResource
-import com.nfcemulator.R
 import com.nfcemulator.ui.theme.LocalAppColors
 import com.nfcemulator.ui.writer.WriteScreen
 import com.nfcemulator.ui.writer.WriteViewModel
@@ -94,6 +93,7 @@ fun NfcNavigation(
     val emulatorViewModel: EmulatorViewModel = koinViewModel()
     var selectedDumpForEditor by remember { mutableStateOf<TagDump?>(null) }
 
+    // Navigate to tags after successful save
     LaunchedEffect(readProgress) {
         if (readProgress is ReadProgress.Complete) {
             selectedDumpForEditor = readProgress.dump
@@ -151,10 +151,10 @@ fun NfcNavigation(
                             selected = currentRoute == item.route,
                             onClick = {
                                 scope.launch { drawerState.close() }
+                                // Always navigate fresh — no saveState/restoreState
                                 navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    popUpTo("dashboard") { inclusive = item.route == "dashboard" }
                                     launchSingleTop = true
-                                    restoreState = true
                                 }
                             },
                             colors = NavigationDrawerItemDefaults.colors(
@@ -196,11 +196,19 @@ fun NfcNavigation(
                             hasRoot = settingsState.hasRoot,
                             emulationMode = settingsState.emulationMode
                         ),
-                        onReadTag = { navController.navigate("reader") },
+                        onReadTag = {
+                            navController.navigate("reader") { launchSingleTop = true }
+                        },
                         onImportFile = onImportClick,
-                        onWriteCard = { navController.navigate("writer") },
-                        onMyTags = { navController.navigate("tags") },
-                        onSettings = { navController.navigate("settings") }
+                        onWriteCard = {
+                            navController.navigate("writer") { launchSingleTop = true }
+                        },
+                        onMyTags = {
+                            navController.navigate("tags") { launchSingleTop = true }
+                        },
+                        onSettings = {
+                            navController.navigate("settings") { launchSingleTop = true }
+                        }
                     )
                 }
                 composable("tags") {
@@ -212,20 +220,24 @@ fun NfcNavigation(
                             val tag = tags.find { it.id == tagId }
                             if (tag != null) {
                                 emulatorViewModel.selectTag(tag)
-                                navController.navigate("emulator")
+                                navController.navigate("emulator") { launchSingleTop = true }
                             }
                         },
                         onEmulateTag = { tagId ->
                             val tag = tags.find { it.id == tagId }
                             if (tag != null) {
                                 emulatorViewModel.selectTag(tag)
-                                navController.navigate("emulator")
+                                navController.navigate("emulator") { launchSingleTop = true }
                             }
                         },
-                        onEditTag = { navController.navigate("editor") },
+                        onEditTag = {
+                            navController.navigate("editor") { launchSingleTop = true }
+                        },
                         onDeleteTag = { tagId -> viewModel.deleteTag(tagId) },
                         onRenameTag = { tagId, newName -> viewModel.renameTag(tagId, newName) },
-                        onAddClick = { navController.navigate("reader") },
+                        onAddClick = {
+                            navController.navigate("reader") { launchSingleTop = true }
+                        },
                         onSearchQuery = { viewModel.search(it) }
                     )
                 }
@@ -236,7 +248,10 @@ fun NfcNavigation(
                     ReaderScreen(
                         readProgress = readProgress,
                         onImportClick = onImportClick,
-                        onSaveTag = onSaveTag,
+                        onSaveTag = { dump ->
+                            onSaveTag(dump)
+                            navController.navigate("tags") { launchSingleTop = true }
+                        },
                         onReset = onResetReader,
                         onCrackKeys = onCrackKeys
                     )
@@ -266,11 +281,11 @@ fun NfcNavigation(
                         isEmulating = state.isEmulating,
                         emulationMode = state.emulationMode,
                         statusMessage = state.statusMessage,
-                        writeProgress = state.writeProgress,
                         onStartEmulation = { emulatorViewModel.startEmulation() },
                         onStopEmulation = { emulatorViewModel.stopEmulation() },
-                        onWriteToTag = { emulatorViewModel.startWriteMode() },
-                        onSelectTag = { navController.navigate("tags") }
+                        onSelectTag = {
+                            navController.navigate("tags") { launchSingleTop = true }
+                        }
                     )
                 }
                 composable("editor") {

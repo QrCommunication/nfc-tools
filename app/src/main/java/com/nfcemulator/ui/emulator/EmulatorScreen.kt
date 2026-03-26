@@ -24,10 +24,8 @@ fun EmulatorScreen(
     isEmulating: Boolean,
     emulationMode: String,
     statusMessage: String = "",
-    writeProgress: String = "",
     onStartEmulation: () -> Unit,
     onStopEmulation: () -> Unit,
-    onWriteToTag: () -> Unit,
     onSelectTag: () -> Unit
 ) {
     Column(
@@ -104,33 +102,6 @@ fun EmulatorScreen(
                     else -> LocalAppColors.current.TextSecondary
                 }
                 Text(statusMessage, style = MaterialTheme.typography.bodyMedium, color = messageColor)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = onWriteToTag,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Accent),
-                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Accent)
-                ),
-                shape = RoundedCornerShape(NfcDimensions.CornerRadius),
-                modifier = Modifier
-                    .fillMaxWidth(0.7f)
-                    .height(48.dp)
-            ) {
-                Text(stringResource(R.string.write_to_magic_tag), style = MaterialTheme.typography.titleMedium)
-            }
-
-            if (writeProgress.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                val wpColor = when {
-                    writeProgress.startsWith("Error") || writeProgress.startsWith("Cannot") || writeProgress.startsWith("Failed") -> LocalAppColors.current.Error
-                    writeProgress.contains("complete") || writeProgress.contains("Complete") -> LocalAppColors.current.Secondary
-                    writeProgress.contains("Waiting") -> LocalAppColors.current.Warning
-                    else -> LocalAppColors.current.Accent
-                }
-                Text(writeProgress, style = MaterialTheme.typography.bodySmall, color = wpColor)
             }
         } else {
             Text(stringResource(R.string.no_tag_selected), style = MaterialTheme.typography.titleMedium, color = LocalAppColors.current.TextSecondary)
