@@ -60,10 +60,15 @@ class TagWriter {
             return false
         }
 
-        val defaultKey = byteArrayOf(
-            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(),
-            0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()
+        // Common default keys for blank CUID/UID cards
+        val blankCardKeys = listOf(
+            byteArrayOf(0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()),
+            byteArrayOf(0xA0.toByte(), 0xA1.toByte(), 0xA2.toByte(), 0xA3.toByte(), 0xA4.toByte(), 0xA5.toByte()),
+            byteArrayOf(0xB0.toByte(), 0xB1.toByte(), 0xB2.toByte(), 0xB3.toByte(), 0xB4.toByte(), 0xB5.toByte()),
+            byteArrayOf(0xD3.toByte(), 0xF7.toByte(), 0xD3.toByte(), 0xF7.toByte(), 0xD3.toByte(), 0xF7.toByte()),
+            byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
         )
+        val defaultKey = blankCardKeys[0]
 
         var sectorsWritten = 0
         val totalSectors = dump.sectors.size
@@ -91,59 +96,54 @@ class TagWriter {
             for (sector in dump.sectors) {
                 _progress.value = WriteProgress.Writing(sector.index, totalSectors)
 
-                // On a blank CUID card, all keys are FFFFFFFFFFFF
-                // Try default key first (blank card), then dump keys (if card was already written)
                 var authenticated = false
+                var authKey: ByteArray = defaultKey
+                var authIsKeyA = true
 
-                // Try default key A (blank CUID card)
-                try {
-                    ensureConnected(mfc)
-                    if (mfc.authenticateSectorWithKeyA(sector.index, defaultKey)) {
-                        authenticated = true
-                    }
-                } catch (_: Exception) {
-                    reconnect(mfc)
-                }
-
-                // Try default key B
-                if (!authenticated) {
+                // Try all blank card keys (A then B)
+                for (key in blankCardKeys) {
+                    if (authenticated) break
                     try {
                         ensureConnected(mfc)
-                        if (mfc.authenticateSectorWithKeyB(sector.index, defaultKey)) {
+                        if (mfc.authenticateSectorWithKeyA(sector.index, key)) {
                             authenticated = true
+                            authKey = key
+                            authIsKeyA = true
                         }
-                    } catch (_: Exception) {
-                        reconnect(mfc)
+                    } catch (_: Exception) { reconnect(mfc) }
+                    if (!authenticated) {
+                        try {
+                            ensureConnected(mfc)
+                            if (mfc.authenticateSectorWithKeyB(sector.index, key)) {
+                                authenticated = true
+                                authKey = key
+                                authIsKeyA = false
+                            }
+                        } catch (_: Exception) { reconnect(mfc) }
                     }
                 }
 
-                // Try dump key A
+                // Try dump keys
                 if (!authenticated) {
                     val keyA = sector.keyA
                     if (keyA != null) {
                         try {
                             ensureConnected(mfc)
                             if (mfc.authenticateSectorWithKeyA(sector.index, keyA)) {
-                                authenticated = true
+                                authenticated = true; authKey = keyA; authIsKeyA = true
                             }
-                        } catch (_: Exception) {
-                            reconnect(mfc)
-                        }
+                        } catch (_: Exception) { reconnect(mfc) }
                     }
                 }
-
-                // Try dump key B
                 if (!authenticated) {
                     val keyB = sector.keyB
                     if (keyB != null) {
                         try {
                             ensureConnected(mfc)
                             if (mfc.authenticateSectorWithKeyB(sector.index, keyB)) {
-                                authenticated = true
+                                authenticated = true; authKey = keyB; authIsKeyA = false
                             }
-                        } catch (_: Exception) {
-                            reconnect(mfc)
-                        }
+                        } catch (_: Exception) { reconnect(mfc) }
                     }
                 }
 
@@ -162,27 +162,20 @@ class TagWriter {
                     val absoluteBlock = firstBlock + blockIdx
 
                     try {
-                        // Re-authenticate before each write
+                        // Re-authenticate before each write with the key that worked
                         ensureConnected(mfc)
-                        val authOk = mfc.authenticateSectorWithKeyA(sector.index, defaultKey) ||
-                            mfc.authenticateSectorWithKeyB(sector.index, defaultKey)
+                        val authOk = if (authIsKeyA) {
+                            mfc.authenticateSectorWithKeyA(sector.index, authKey)
+                        } else {
+                            mfc.authenticateSectorWithKeyB(sector.index, authKey)
+                        }
 
                         if (authOk) {
                             mfc.writeBlock(absoluteBlock, block.data)
                             blocksWritten++
                         }
                     } catch (e: Exception) {
-                        // Trailer block write may fail — that's OK on some cards
-                        if (block.isTrailerBlock) {
-                            // Try writing trailer anyway with different auth
-                            try {
-                                reconnect(mfc)
-                                if (mfc.authenticateSectorWithKeyA(sector.index, defaultKey)) {
-                                    mfc.writeBlock(absoluteBlock, block.data)
-                                    blocksWritten++
-                                }
-                            } catch (_: Exception) {}
-                        }
+                        // Trailer block write may fail — that's OK
                         reconnect(mfc)
                     }
                 }
