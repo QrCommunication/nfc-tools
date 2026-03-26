@@ -192,9 +192,11 @@ class TagWriter {
                 }
             }
 
+            pendingDump = null
             _progress.value = WriteProgress.Complete(sectorsWritten, totalSectors)
             return sectorsWritten > 0
         } catch (e: Exception) {
+            pendingDump = null
             _progress.value = WriteProgress.Error("Write failed: ${e.message}")
             return false
         } finally {

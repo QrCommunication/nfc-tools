@@ -143,6 +143,14 @@ class MainActivity : ComponentActivity() {
                 lifecycleScope.launch {
                     tagWriter.writeTag(tag, pendingDump)
                 }
+            } else {
+                // No pending dump — exit write mode, process as read
+                tagWriter.reset()
+                lastReadTag = tag
+                lifecycleScope.launch {
+                    val keys = dictionaryManager.getAllKeys()
+                    tagReader.readTag(tag, keys)
+                }
             }
             return
         }
