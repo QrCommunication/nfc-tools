@@ -136,49 +136,13 @@ class MainActivity : ComponentActivity() {
         @Suppress("DEPRECATION")
         val tag: Tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? Tag ?: return
 
-        // If in write mode, write to the tag instead of reading
+        // If in write mode, write the pending dump to the tag
         if (tagWriter.progress.value is WriteProgress.WaitingForTag) {
-            lifecycleScope.launch {
-                // Try WriteViewModel first (WriteScreen), then EmulatorViewModel
-                val koin = org.koin.java.KoinJavaComponent.getKoin()
-                val writeVm = try { koin.get<com.nfcemulator.ui.writer.WriteViewModel>() } catch (_: Exception) { null }
-                val emulatorVm = try { koin.get<com.nfcemulator.ui.emulator.EmulatorViewModel>() } catch (_: Exception) { null }
-
-                val selectedTag = writeVm?.uiState?.value?.selectedTag
-                    ?: emulatorVm?.uiState?.value?.selectedTag
-                    ?: return@launch
-
-                val rawData = encryptedFileManager.loadDump(selectedTag.id) ?: return@launch
-
-                // Parse rawData back into sectors/blocks
-                val tagType = com.nfcemulator.dump.model.TagType.entries.find { it.displayName == selectedTag.type }
-                    ?: com.nfcemulator.dump.model.TagType.MIFARE_CLASSIC_1K
-                val parser = com.nfcemulator.dump.parser.MfdParser()
-                val parsedDump = try {
-                    parser.parse(java.io.ByteArrayInputStream(rawData), "${selectedTag.name}.bin")
-                } catch (_: Exception) { null }
-
-                val dump = if (parsedDump != null && parsedDump.sectors.isNotEmpty()) {
-                    parsedDump.copy(
-                        id = selectedTag.id,
-                        name = selectedTag.name,
-                        uid = try {
-                            selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray()
-                        } catch (_: Exception) { parsedDump.uid }
-                    )
-                } else {
-                    TagDump(
-                        id = selectedTag.id,
-                        name = selectedTag.name,
-                        type = tagType,
-                        uid = try {
-                            selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray()
-                        } catch (_: Exception) { byteArrayOf() },
-                        rawData = rawData,
-                        sourceFormat = com.nfcemulator.dump.model.DumpFormat.BIN
-                    )
+            val pendingDump = tagWriter.pendingDump
+            if (pendingDump != null) {
+                lifecycleScope.launch {
+                    tagWriter.writeTag(tag, pendingDump)
                 }
-                tagWriter.writeTag(tag, dump)
             }
             return
         }

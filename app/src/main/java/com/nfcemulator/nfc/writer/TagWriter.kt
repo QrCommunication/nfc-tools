@@ -24,11 +24,21 @@ class TagWriter {
     private val _progress = MutableStateFlow<WriteProgress>(WriteProgress.Idle)
     val progress: StateFlow<WriteProgress> = _progress.asStateFlow()
 
+    // Store the dump to write — set before startWaiting()
+    var pendingDump: TagDump? = null
+        private set
+
+    fun startWaiting(dump: TagDump) {
+        pendingDump = dump
+        _progress.value = WriteProgress.WaitingForTag
+    }
+
     fun startWaiting() {
         _progress.value = WriteProgress.WaitingForTag
     }
 
     fun reset() {
+        pendingDump = null
         _progress.value = WriteProgress.Idle
     }
 

@@ -51,7 +51,7 @@ val viewModelModule = module {
     viewModel { HomeViewModel(get()) }
     viewModel { EmulatorViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get()) }
-    viewModel { WriteViewModel(get(), get()) }
+    viewModel { WriteViewModel(get(), get(), get()) }
 }
 
 val allModules = listOf(databaseModule, storageModule, nfcModule, viewModelModule)
