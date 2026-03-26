@@ -100,26 +100,34 @@ class TagWriter {
                 var authKey: ByteArray = defaultKey
                 var authIsKeyA = true
 
-                // Try all blank card keys (A then B)
+                // Try all blank card keys with retries (NFC can be flaky)
                 for (key in blankCardKeys) {
                     if (authenticated) break
-                    try {
-                        ensureConnected(mfc)
-                        if (mfc.authenticateSectorWithKeyA(sector.index, key)) {
-                            authenticated = true
-                            authKey = key
-                            authIsKeyA = true
-                        }
-                    } catch (_: Exception) { reconnect(mfc) }
-                    if (!authenticated) {
+                    for (attempt in 0..2) {
                         try {
-                            ensureConnected(mfc)
-                            if (mfc.authenticateSectorWithKeyB(sector.index, key)) {
+                            reconnect(mfc)
+                            Thread.sleep(20)
+                            if (mfc.authenticateSectorWithKeyA(sector.index, key)) {
                                 authenticated = true
                                 authKey = key
-                                authIsKeyA = false
+                                authIsKeyA = true
+                                break
                             }
-                        } catch (_: Exception) { reconnect(mfc) }
+                        } catch (_: Exception) {}
+                    }
+                    if (!authenticated) {
+                        for (attempt in 0..2) {
+                            try {
+                                reconnect(mfc)
+                                Thread.sleep(20)
+                                if (mfc.authenticateSectorWithKeyB(sector.index, key)) {
+                                    authenticated = true
+                                    authKey = key
+                                    authIsKeyA = false
+                                    break
+                                }
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
 

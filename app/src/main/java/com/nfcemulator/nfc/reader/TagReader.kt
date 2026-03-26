@@ -134,13 +134,15 @@ class TagReader {
             if (idx % 50 == 0) {
                 _progress.value = ReadProgress.KeyTesting(sectorIndex, idx)
             }
-            try {
-                ensureConnected(mfc)
-                if (mfc.authenticateSectorWithKeyA(sectorIndex, key)) {
-                    return key.copyOf()
-                }
-            } catch (_: Exception) {
-                reconnect(mfc)
+            // Try up to 2 times per key (NFC can be flaky)
+            for (attempt in 0..1) {
+                try {
+                    reconnect(mfc)
+                    Thread.sleep(10)
+                    if (mfc.authenticateSectorWithKeyA(sectorIndex, key)) {
+                        return key.copyOf()
+                    }
+                } catch (_: Exception) {}
             }
         }
         return null
@@ -152,13 +154,14 @@ class TagReader {
         keys: List<ByteArray>
     ): ByteArray? {
         for (key in keys) {
-            try {
-                ensureConnected(mfc)
-                if (mfc.authenticateSectorWithKeyB(sectorIndex, key)) {
-                    return key.copyOf()
-                }
-            } catch (_: Exception) {
-                reconnect(mfc)
+            for (attempt in 0..1) {
+                try {
+                    reconnect(mfc)
+                    Thread.sleep(10)
+                    if (mfc.authenticateSectorWithKeyB(sectorIndex, key)) {
+                        return key.copyOf()
+                    }
+                } catch (_: Exception) {}
             }
         }
         return null
