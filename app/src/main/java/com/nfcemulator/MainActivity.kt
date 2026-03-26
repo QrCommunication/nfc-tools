@@ -139,18 +139,45 @@ class MainActivity : ComponentActivity() {
         // If in write mode, write to the tag instead of reading
         if (tagWriter.progress.value is WriteProgress.WaitingForTag) {
             lifecycleScope.launch {
-                val emulatorVm = org.koin.java.KoinJavaComponent.getKoin().get<com.nfcemulator.ui.emulator.EmulatorViewModel>()
-                val selectedTag = emulatorVm.uiState.value.selectedTag ?: return@launch
+                // Try WriteViewModel first (WriteScreen), then EmulatorViewModel
+                val koin = org.koin.java.KoinJavaComponent.getKoin()
+                val writeVm = try { koin.get<com.nfcemulator.ui.writer.WriteViewModel>() } catch (_: Exception) { null }
+                val emulatorVm = try { koin.get<com.nfcemulator.ui.emulator.EmulatorViewModel>() } catch (_: Exception) { null }
+
+                val selectedTag = writeVm?.uiState?.value?.selectedTag
+                    ?: emulatorVm?.uiState?.value?.selectedTag
+                    ?: return@launch
+
                 val rawData = encryptedFileManager.loadDump(selectedTag.id) ?: return@launch
 
-                val dump = com.nfcemulator.dump.model.TagDump(
-                    id = selectedTag.id,
-                    name = selectedTag.name,
-                    type = com.nfcemulator.dump.model.TagType.entries.find { it.displayName == selectedTag.type } ?: com.nfcemulator.dump.model.TagType.UNKNOWN,
-                    uid = selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray(),
-                    rawData = rawData,
-                    sourceFormat = com.nfcemulator.dump.model.DumpFormat.JSON
-                )
+                // Parse rawData back into sectors/blocks
+                val tagType = com.nfcemulator.dump.model.TagType.entries.find { it.displayName == selectedTag.type }
+                    ?: com.nfcemulator.dump.model.TagType.MIFARE_CLASSIC_1K
+                val parser = com.nfcemulator.dump.parser.MfdParser()
+                val parsedDump = try {
+                    parser.parse(java.io.ByteArrayInputStream(rawData), "${selectedTag.name}.bin")
+                } catch (_: Exception) { null }
+
+                val dump = if (parsedDump != null && parsedDump.sectors.isNotEmpty()) {
+                    parsedDump.copy(
+                        id = selectedTag.id,
+                        name = selectedTag.name,
+                        uid = try {
+                            selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray()
+                        } catch (_: Exception) { parsedDump.uid }
+                    )
+                } else {
+                    TagDump(
+                        id = selectedTag.id,
+                        name = selectedTag.name,
+                        type = tagType,
+                        uid = try {
+                            selectedTag.uid.split(":").map { it.toInt(16).toByte() }.toByteArray()
+                        } catch (_: Exception) { byteArrayOf() },
+                        rawData = rawData,
+                        sourceFormat = com.nfcemulator.dump.model.DumpFormat.BIN
+                    )
+                }
                 tagWriter.writeTag(tag, dump)
             }
             return
