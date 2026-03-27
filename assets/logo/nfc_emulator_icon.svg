@@ -1,82 +1,94 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <!-- Neon Cyan glow -->
+    <!-- Electric Cyan glow -->
     <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Neon Mint glow -->
+    <filter id="glowMint" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Purple glow -->
+    <filter id="glowPurple" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <!-- Neon Green glow -->
-    <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-    <!-- Background gradient -->
-    <radialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#0A1A1A"/>
-      <stop offset="100%" stop-color="#000000"/>
+    <!-- Background gradient — deep indigo -->
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#0C0C18"/>
+      <stop offset="60%" stop-color="#06060E"/>
+      <stop offset="100%" stop-color="#04040C"/>
     </radialGradient>
-    <!-- Shield gradient -->
+    <!-- Shield gradient — Cyan to Purple -->
     <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00FFFF" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#00FF41" stop-opacity="0.05"/>
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#D500F9" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#00FF87" stop-opacity="0.05"/>
+    </linearGradient>
+    <!-- Shield stroke gradient -->
+    <linearGradient id="shieldStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#D500F9"/>
     </linearGradient>
   </defs>
 
   <!-- Background -->
-  <rect width="512" height="512" rx="96" fill="url(#bgGlow)"/>
+  <rect width="512" height="512" rx="108" fill="url(#bgGlow)"/>
 
-  <!-- Outer border glow -->
-  <rect x="4" y="4" width="504" height="504" rx="92" fill="none" stroke="#00FFFF" stroke-width="1.5" opacity="0.3"/>
+  <!-- Outer border — gradient glow -->
+  <rect x="4" y="4" width="504" height="504" rx="104" fill="none" stroke="url(#shieldStroke)" stroke-width="1.5" opacity="0.35"/>
 
-  <!-- Shield shape -->
-  <path d="M256 80 L400 140 L400 280 Q400 380 256 440 Q112 380 112 280 L112 140 Z"
-        fill="url(#shieldGrad)" stroke="#00FFFF" stroke-width="2.5" opacity="0.6" filter="url(#glowCyan)"/>
+  <!-- Shield shape — gradient fill -->
+  <path d="M256 72 L408 136 L408 284 Q408 388 256 448 Q104 388 104 284 L104 136 Z"
+        fill="url(#shieldGrad)" stroke="url(#shieldStroke)" stroke-width="2.5" opacity="0.7" filter="url(#glowCyan)"/>
 
   <!-- NFC waves (3 arcs) -->
-  <g transform="translate(256, 260)" filter="url(#glowCyan)">
-    <!-- Wave 1 (inner) -->
-    <path d="M-30,-50 A60,60 0 0,1 -30,50" fill="none" stroke="#00FFFF" stroke-width="4" stroke-linecap="round" opacity="1"/>
-    <!-- Wave 2 (middle) -->
-    <path d="M-50,-80 A100,100 0 0,1 -50,80" fill="none" stroke="#00FFFF" stroke-width="3.5" stroke-linecap="round" opacity="0.75"/>
-    <!-- Wave 3 (outer) -->
-    <path d="M-70,-110 A140,140 0 0,1 -70,110" fill="none" stroke="#00FFFF" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <g transform="translate(256, 265)">
+    <!-- Wave 1 (inner) — Electric Cyan -->
+    <path d="M-28,-48 A58,58 0 0,1 -28,48" fill="none" stroke="#00E5FF" stroke-width="4.5" stroke-linecap="round" opacity="1" filter="url(#glowCyan)"/>
+    <!-- Wave 2 (middle) — Cyan+Purple blend -->
+    <path d="M-50,-80 A100,100 0 0,1 -50,80" fill="none" stroke="#00E5FF" stroke-width="3.5" stroke-linecap="round" opacity="0.7" filter="url(#glowCyan)"/>
+    <!-- Wave 3 (outer) — Purple tint -->
+    <path d="M-72,-112 A142,142 0 0,1 -72,112" fill="none" stroke="#D500F9" stroke-width="3" stroke-linecap="round" opacity="0.5" filter="url(#glowPurple)"/>
   </g>
 
   <!-- Central phone/card shape -->
-  <g transform="translate(256, 260)">
-    <!-- Phone body -->
-    <rect x="-20" y="-55" width="70" height="110" rx="8" fill="#0D0D0D" stroke="#00FF41" stroke-width="2" filter="url(#glowGreen)"/>
+  <g transform="translate(256, 265)">
+    <!-- Phone body — Neon Mint border -->
+    <rect x="-18" y="-52" width="68" height="104" rx="10" fill="#0C0C18" stroke="#00FF87" stroke-width="2.5" filter="url(#glowMint)"/>
     <!-- Phone screen -->
-    <rect x="-14" y="-45" width="58" height="80" rx="4" fill="#000000" stroke="#00FF41" stroke-width="0.5" opacity="0.8"/>
-    <!-- NFC symbol on screen -->
-    <text x="15" y="-5" font-family="monospace" font-size="20" font-weight="bold" fill="#00FF41" text-anchor="middle" filter="url(#glowGreen)">NFC</text>
-    <!-- Signal dot on screen -->
-    <circle cx="15" cy="15" r="4" fill="#00FF41" opacity="0.9"/>
-    <!-- Small signal arcs on screen -->
-    <path d="M7,5 A12,12 0 0,1 7,25" fill="none" stroke="#00FF41" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    <rect x="-12" y="-42" width="56" height="75" rx="6" fill="#04040C" stroke="#00FF87" stroke-width="0.6" opacity="0.7"/>
+    <!-- NFC text on screen -->
+    <text x="16" y="-5" font-family="monospace" font-size="20" font-weight="bold" fill="#00E5FF" text-anchor="middle" filter="url(#glowCyan)">NFC</text>
+    <!-- Signal dot -->
+    <circle cx="16" cy="14" r="5" fill="#00FF87" opacity="0.9" filter="url(#glowMint)"/>
+    <!-- Mini arc on screen -->
+    <path d="M6,4 A14,14 0 0,1 6,24" fill="none" stroke="#00E5FF" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
   </g>
 
-  <!-- Binary data decoration (subtle) -->
-  <g font-family="monospace" font-size="10" fill="#00FFFF" opacity="0.12">
-    <text x="40" y="100">01001110 01000110</text>
-    <text x="340" y="450">11000011 00101010</text>
-    <text x="30" y="440">4B 65 79 3A</text>
-    <text x="370" y="110">FF FF FF FF</text>
+  <!-- Decorative binary data -->
+  <g font-family="monospace" font-size="10" opacity="0.08">
+    <text x="40" y="95" fill="#00E5FF">01001110 01000110 01000011</text>
+    <text x="320" y="455" fill="#D500F9">11000011 00101010 11110000</text>
+    <text x="30" y="445" fill="#00FF87">4B 65 79 3A FF FF</text>
+    <text x="360" y="105" fill="#00E5FF">FF FF FF FF FF FF</text>
   </g>
 
-  <!-- Corner accents -->
-  <g stroke="#00FFFF" stroke-width="1.5" opacity="0.4">
-    <!-- Top-left -->
-    <line x1="24" y1="40" x2="24" y2="65"/>
-    <line x1="24" y1="40" x2="49" y2="40"/>
-    <!-- Top-right -->
-    <line x1="488" y1="40" x2="488" y2="65"/>
-    <line x1="488" y1="40" x2="463" y2="40"/>
-    <!-- Bottom-left -->
-    <line x1="24" y1="472" x2="24" y2="447"/>
-    <line x1="24" y1="472" x2="49" y2="472"/>
-    <!-- Bottom-right -->
-    <line x1="488" y1="472" x2="488" y2="447"/>
-    <line x1="488" y1="472" x2="463" y2="472"/>
+  <!-- Corner accents — gradient effect -->
+  <g stroke-width="1.5" opacity="0.4">
+    <!-- Top-left — Cyan -->
+    <line x1="24" y1="38" x2="24" y2="66" stroke="#00E5FF"/>
+    <line x1="24" y1="38" x2="52" y2="38" stroke="#00E5FF"/>
+    <!-- Top-right — Purple -->
+    <line x1="488" y1="38" x2="488" y2="66" stroke="#D500F9"/>
+    <line x1="488" y1="38" x2="460" y2="38" stroke="#D500F9"/>
+    <!-- Bottom-left — Mint -->
+    <line x1="24" y1="474" x2="24" y2="446" stroke="#00FF87"/>
+    <line x1="24" y1="474" x2="52" y2="474" stroke="#00FF87"/>
+    <!-- Bottom-right — Cyan -->
+    <line x1="488" y1="474" x2="488" y2="446" stroke="#00E5FF"/>
+    <line x1="488" y1="474" x2="460" y2="474" stroke="#00E5FF"/>
   </g>
 </svg>

@@ -20,120 +20,133 @@ val JetBrainsMonoFamily = FontFamily(
     Font(R.font.jetbrainsmono_bold, FontWeight.Bold)
 )
 
+// MD3 Typography — no hardcoded colors, inherits from theme
 val NfcTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
-        color = NfcColors.TextPrimary
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = Exo2Family,
+        fontWeight = FontWeight.Bold,
+        fontSize = 45.sp,
+        lineHeight = 52.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = Exo2Family,
+        fontWeight = FontWeight.Bold,
+        fontSize = 36.sp,
+        lineHeight = 44.sp
     ),
     headlineLarge = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-        color = NfcColors.TextPrimary
+        fontSize = 32.sp,
+        lineHeight = 40.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        color = NfcColors.TextPrimary
+        fontSize = 28.sp,
+        lineHeight = 36.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = Exo2Family,
-        fontWeight = FontWeight.Medium,
-        fontSize = 18.sp,
-        lineHeight = 24.sp,
-        color = NfcColors.TextPrimary
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp
     ),
     titleLarge = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
-        lineHeight = 26.sp,
-        color = NfcColors.TextPrimary
+        fontSize = 22.sp,
+        lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
-        lineHeight = 22.sp,
-        color = NfcColors.TextPrimary
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = Exo2Family,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        color = NfcColors.TextPrimary
+        letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        color = NfcColors.TextPrimary
+        letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        color = NfcColors.TextSecondary
+        letterSpacing = 0.4.sp
     ),
     labelLarge = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        color = NfcColors.TextPrimary
+        letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        color = NfcColors.TextSecondary
+        letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
         fontFamily = Exo2Family,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
-        color = NfcColors.TextSecondary
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
     )
 )
 
+// NFC-specific monospace styles — color set by caller
 object NfcMonoStyles {
     val hexData = TextStyle(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        color = NfcColors.HexDefault
+        lineHeight = 20.sp
     )
     val hexDataBold = TextStyle(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        color = NfcColors.HexDefault
+        lineHeight = 20.sp
     )
     val uid = TextStyle(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
-        lineHeight = 22.sp,
-        color = NfcColors.Secondary
+        lineHeight = 22.sp
     )
     val key = TextStyle(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 20.sp,
-        color = NfcColors.HexKeyA
+        lineHeight = 20.sp
     )
 }

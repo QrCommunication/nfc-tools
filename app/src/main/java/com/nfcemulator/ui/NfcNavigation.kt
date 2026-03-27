@@ -17,7 +17,9 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -65,6 +68,7 @@ import com.nfcemulator.ui.writer.WriteViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NfcNavigation(
     readProgress: ReadProgress,
@@ -111,22 +115,29 @@ fun NfcNavigation(
         DrawerItem("settings", R.string.settings_title, Icons.Default.Settings)
     )
 
+    val currentScreenLabel = drawerItems.find { it.route == currentRoute }
+        ?.let { stringResource(it.labelRes) }
+        ?: stringResource(R.string.app_name)
+
+    val colors = LocalAppColors.current
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = LocalAppColors.current.Surface,
-                drawerContentColor = LocalAppColors.current.TextPrimary
+                drawerContainerColor = colors.Surface,
+                drawerContentColor = colors.TextPrimary
             ) {
+                // Header area
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(LocalAppColors.current.SurfaceVariant)
+                        .background(colors.SurfaceContainerHigh)
                         .padding(24.dp)
                 ) {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, color = LocalAppColors.current.Primary)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, color = colors.Primary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(stringResource(R.string.tagline), style = MaterialTheme.typography.bodySmall, color = LocalAppColors.current.Secondary)
+                    Text(stringResource(R.string.tagline), style = MaterialTheme.typography.bodySmall, color = colors.Secondary)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -139,13 +150,13 @@ fun NfcNavigation(
                                 Icon(
                                     item.icon,
                                     contentDescription = itemLabel,
-                                    tint = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextSecondary
+                                    tint = if (currentRoute == item.route) colors.Primary else colors.TextSecondary
                                 )
                             },
                             label = {
                                 Text(
                                     itemLabel,
-                                    color = if (currentRoute == item.route) LocalAppColors.current.Primary else LocalAppColors.current.TextPrimary
+                                    color = if (currentRoute == item.route) colors.Primary else colors.TextPrimary
                                 )
                             },
                             selected = currentRoute == item.route,
@@ -158,8 +169,8 @@ fun NfcNavigation(
                                 }
                             },
                             colors = NavigationDrawerItemDefaults.colors(
-                                selectedContainerColor = LocalAppColors.current.Primary.copy(alpha = 0.1f),
-                                unselectedContainerColor = LocalAppColors.current.Surface
+                                selectedContainerColor = colors.Primary.copy(alpha = 0.12f),
+                                unselectedContainerColor = colors.Surface
                             ),
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
@@ -169,14 +180,27 @@ fun NfcNavigation(
         }
     ) {
         Scaffold(
-            containerColor = LocalAppColors.current.Background,
+            containerColor = colors.Background,
             topBar = {
-                IconButton(
-                    onClick = { scope.launch { drawerState.open() } },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = LocalAppColors.current.Primary)
-                }
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            currentScreenLabel,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = colors.TextPrimary
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = colors.Primary)
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = colors.SurfaceContainer,
+                        titleContentColor = colors.TextPrimary,
+                        navigationIconContentColor = colors.Primary
+                    )
+                )
             }
         ) { paddingValues ->
             NavHost(

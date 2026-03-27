@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nfcemulator.R
 import com.nfcemulator.dump.model.TagDump
@@ -59,16 +61,16 @@ fun ReaderScreen(
                     color = LocalAppColors.current.TextSecondary
                 )
                 Spacer(modifier = Modifier.height(48.dp))
-                OutlinedButton(
+                Button(
                     onClick = onImportClick,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = LocalAppColors.current.Primary,
+                        contentColor = LocalAppColors.current.Background
                     ),
-                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
-                    modifier = Modifier.fillMaxWidth(0.7f)
+                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
                 ) {
-                    Text(stringResource(R.string.import_dump_file))
+                    Text(stringResource(R.string.import_dump_file), fontWeight = FontWeight.SemiBold)
                 }
             }
             is ReadProgress.Reading -> {
@@ -80,7 +82,7 @@ fun ReaderScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = { readProgress.sector.toFloat() / readProgress.total },
-                    modifier = Modifier.fillMaxWidth(0.6f),
+                    modifier = Modifier.fillMaxWidth(0.6f).height(6.dp),
                     color = LocalAppColors.current.Primary,
                     trackColor = LocalAppColors.current.SurfaceVariant
                 )
@@ -113,16 +115,16 @@ fun ReaderScreen(
                     color = LocalAppColors.current.Error
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = onReset,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = LocalAppColors.current.Primary.copy(alpha = 0.15f),
+                        contentColor = LocalAppColors.current.Primary
                     ),
-                    shape = RoundedCornerShape(NfcDimensions.CornerRadius),
-                    modifier = Modifier.fillMaxWidth(0.7f)
+                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
                 ) {
-                    Text(stringResource(R.string.try_again))
+                    Text(stringResource(R.string.try_again), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -138,69 +140,84 @@ private fun CompleteContent(
     onReset: () -> Unit,
     onCrackKeys: (TagDump) -> Unit
 ) {
+    val colors = LocalAppColors.current
     val allKeysFound = dump.totalKeys > 0 && dump.foundKeys == dump.totalKeys
 
     Text(
         stringResource(R.string.tag_read_success),
         style = MaterialTheme.typography.titleMedium,
-        color = LocalAppColors.current.Secondary
+        color = colors.Secondary
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Tag info card
+    // Tag info card — ElevatedCard-style with colored top accent
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(LocalAppColors.current.Surface, RoundedCornerShape(NfcDimensions.CornerRadius))
-            .border(NfcDimensions.BorderWidth, LocalAppColors.current.Secondary, RoundedCornerShape(NfcDimensions.CornerRadius))
-            .padding(NfcDimensions.CardPadding),
+            .background(colors.SurfaceContainer, RoundedCornerShape(NfcDimensions.CornerRadius))
+            .border(NfcDimensions.BorderWidth, colors.Secondary, RoundedCornerShape(NfcDimensions.CornerRadius)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            dump.uidHex,
-            style = NfcMonoStyles.uid,
-            color = LocalAppColors.current.Secondary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            dump.type.displayName,
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalAppColors.current.TextSecondary
-        )
-        if (dump.sectors.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "${dump.sectors.size} sectors",
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalAppColors.current.TextSecondary
-            )
-        }
-        if (dump.totalKeys > 0) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    stringResource(R.string.total_keys),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LocalAppColors.current.TextSecondary
+        // Colored top accent bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .background(
+                    colors.Secondary,
+                    RoundedCornerShape(topStart = NfcDimensions.CornerRadius, topEnd = NfcDimensions.CornerRadius)
                 )
+        )
+        Column(
+            modifier = Modifier.padding(NfcDimensions.CardPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                dump.uidHex,
+                style = NfcMonoStyles.uid,
+                color = colors.Secondary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                dump.type.displayName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.TextSecondary
+            )
+            if (dump.sectors.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "${dump.foundKeys}/${dump.totalKeys}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (allKeysFound) LocalAppColors.current.KeyFound else LocalAppColors.current.Warning
+                    "${dump.sectors.size} sectors",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.TextSecondary
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            LinearProgressIndicator(
-                progress = { dump.decryptionProgress },
-                modifier = Modifier.fillMaxWidth().height(6.dp),
-                color = if (allKeysFound) LocalAppColors.current.KeyFound else LocalAppColors.current.Warning,
-                trackColor = LocalAppColors.current.SurfaceVariant
-            )
+            if (dump.totalKeys > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.total_keys),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.TextSecondary
+                    )
+                    Text(
+                        "${dump.foundKeys}/${dump.totalKeys}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (allKeysFound) colors.KeyFound else colors.Warning
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { dump.decryptionProgress },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = if (allKeysFound) colors.KeyFound else colors.Warning,
+                    trackColor = colors.SurfaceVariant
+                )
+            }
         }
     }
 
@@ -210,19 +227,19 @@ private fun CompleteContent(
         Text(
             "${dump.totalKeys - dump.foundKeys} keys remaining — try extended dictionaries?",
             style = MaterialTheme.typography.bodySmall,
-            color = LocalAppColors.current.TextSecondary
+            color = colors.TextSecondary
         )
         Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(
+        FilledTonalButton(
             onClick = { onCrackKeys(dump) },
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Warning),
-            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-                brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Warning)
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = colors.Warning.copy(alpha = 0.15f),
+                contentColor = colors.Warning
             ),
-            shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+            shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth(0.7f)
         ) {
-            Text(stringResource(R.string.crack_keys))
+            Text(stringResource(R.string.crack_keys), fontWeight = FontWeight.SemiBold)
         }
     }
 
@@ -232,27 +249,27 @@ private fun CompleteContent(
     Button(
         onClick = { onSaveTag(dump) },
         colors = ButtonDefaults.buttonColors(
-            containerColor = LocalAppColors.current.Primary,
-            contentColor = LocalAppColors.current.Background
+            containerColor = colors.Primary,
+            contentColor = colors.Background
         ),
-        shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+        shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
     ) {
-        Text(stringResource(R.string.save_tag), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.save_tag), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    OutlinedButton(
+    FilledTonalButton(
         onClick = onReset,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.Primary),
-        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
-            brush = androidx.compose.ui.graphics.SolidColor(LocalAppColors.current.Primary)
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = colors.Primary.copy(alpha = 0.12f),
+            contentColor = colors.Primary
         ),
-        shape = RoundedCornerShape(NfcDimensions.CornerRadius),
+        shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth(0.7f).height(48.dp)
     ) {
-        Text(stringResource(R.string.read_another), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.read_another), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -261,30 +278,88 @@ private fun NfcPulseAnimation(readProgress: ReadProgress) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val isActive = readProgress is ReadProgress.Idle || readProgress is ReadProgress.Reading
 
-    val scale by infiniteTransition.animateFloat(
+    val scale1 by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = if (isActive) 2.5f else 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = EaseOut),
             repeatMode = RepeatMode.Restart
         ),
-        label = "scale"
+        label = "scale1"
     )
 
-    val alpha by infiniteTransition.animateFloat(
+    val scale2 by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isActive) 2.0f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, delayMillis = 300, easing = EaseOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scale2"
+    )
+
+    val scale3 by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isActive) 1.6f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, delayMillis = 600, easing = EaseOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scale3"
+    )
+
+    val alpha1 by infiniteTransition.animateFloat(
         initialValue = 0.6f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = EaseOut),
             repeatMode = RepeatMode.Restart
         ),
-        label = "alpha"
+        label = "alpha1"
     )
 
-    val color = when (readProgress) {
-        is ReadProgress.Complete -> LocalAppColors.current.Secondary
-        is ReadProgress.Error -> LocalAppColors.current.Error
-        else -> LocalAppColors.current.Primary
+    val alpha2 by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, delayMillis = 300, easing = EaseOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "alpha2"
+    )
+
+    val alpha3 by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, delayMillis = 600, easing = EaseOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "alpha3"
+    )
+
+    val colors = LocalAppColors.current
+
+    val ringColor1 = when (readProgress) {
+        is ReadProgress.Complete -> colors.Secondary
+        is ReadProgress.Error -> colors.Error
+        else -> colors.Primary
+    }
+    val ringColor2 = when (readProgress) {
+        is ReadProgress.Complete -> colors.Secondary.copy(alpha = 0.7f)
+        is ReadProgress.Error -> colors.Error.copy(alpha = 0.7f)
+        else -> colors.Accent.copy(alpha = 0.7f)
+    }
+    val ringColor3 = when (readProgress) {
+        is ReadProgress.Complete -> colors.Secondary.copy(alpha = 0.5f)
+        is ReadProgress.Error -> colors.Error.copy(alpha = 0.5f)
+        else -> colors.Accent.copy(alpha = 0.5f)
+    }
+
+    val centerColor = when (readProgress) {
+        is ReadProgress.Complete -> colors.Secondary
+        is ReadProgress.Error -> colors.Error
+        else -> colors.Primary
     }
 
     val labelText = when (readProgress) {
@@ -297,18 +372,33 @@ private fun NfcPulseAnimation(readProgress: ReadProgress) {
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .scale(scale)
-                    .alpha(alpha)
-                    .border(2.dp, color, CircleShape)
+                    .scale(scale1)
+                    .alpha(alpha1)
+                    .border(2.dp, ringColor1, CircleShape)
+            )
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(scale2)
+                    .alpha(alpha2)
+                    .border(1.5.dp, ringColor2, CircleShape)
+            )
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(scale3)
+                    .alpha(alpha3)
+                    .border(1.dp, ringColor3, CircleShape)
             )
         }
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .border(3.dp, color, CircleShape),
+                .background(colors.SurfaceContainer, CircleShape)
+                .border(3.dp, centerColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(labelText, style = MaterialTheme.typography.titleLarge, color = color)
+            Text(labelText, style = MaterialTheme.typography.titleLarge, color = centerColor, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -5,59 +5,76 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Shield outline -->
+    <!-- Shield outline — Electric Cyan with purple gradient feel -->
     <path
-        android:pathData="M54,20 L82,32 L82,60 Q82,82 54,92 Q26,82 26,60 L26,32 Z"
-        android:strokeWidth="1.5"
-        android:strokeColor="#00FFFF"
-        android:strokeAlpha="0.5"
-        android:fillColor="#00FFFF"
-        android:fillAlpha="0.08"/>
+        android:pathData="M54,18 L84,31 L84,58 Q84,82 54,93 Q24,82 24,58 L24,31 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#00E5FF"
+        android:strokeAlpha="0.6"
+        android:fillColor="#00E5FF"
+        android:fillAlpha="0.06"/>
 
-    <!-- NFC Wave 1 (inner) -->
+    <!-- Inner shield glow -->
     <path
-        android:pathData="M44,45 A12,12 0 0,1 44,65"
-        android:strokeWidth="2.2"
-        android:strokeColor="#00FFFF"
+        android:pathData="M54,24 L78,35 L78,56 Q78,76 54,86 Q30,76 30,56 L30,35 Z"
+        android:fillColor="#D500F9"
+        android:fillAlpha="0.04"
+        android:strokeWidth="0"
+        android:strokeColor="#00000000"/>
+
+    <!-- NFC Wave 1 (inner) — Bright Cyan -->
+    <path
+        android:pathData="M44,44 A13,13 0 0,1 44,66"
+        android:strokeWidth="2.5"
+        android:strokeColor="#00E5FF"
         android:strokeLineCap="round"
         android:fillColor="#00000000"/>
 
-    <!-- NFC Wave 2 (middle) -->
+    <!-- NFC Wave 2 (middle) — Cyan + slight fade -->
     <path
-        android:pathData="M38,38 A22,22 0 0,1 38,72"
-        android:strokeWidth="1.8"
-        android:strokeColor="#00FFFF"
+        android:pathData="M37,37 A23,23 0 0,1 37,73"
+        android:strokeWidth="2"
+        android:strokeColor="#00E5FF"
         android:strokeAlpha="0.7"
         android:strokeLineCap="round"
         android:fillColor="#00000000"/>
 
-    <!-- NFC Wave 3 (outer) -->
+    <!-- NFC Wave 3 (outer) — Purple tint -->
     <path
-        android:pathData="M32,31 A32,32 0 0,1 32,79"
-        android:strokeWidth="1.5"
-        android:strokeColor="#00FFFF"
-        android:strokeAlpha="0.4"
+        android:pathData="M30,30 A33,33 0 0,1 30,80"
+        android:strokeWidth="1.6"
+        android:strokeColor="#D500F9"
+        android:strokeAlpha="0.5"
         android:strokeLineCap="round"
         android:fillColor="#00000000"/>
 
-    <!-- Phone body -->
+    <!-- Phone body — Neon Mint border -->
     <path
-        android:pathData="M52,38 L72,38 Q75,38 75,41 L75,69 Q75,72 72,72 L52,72 Q49,72 49,69 L49,41 Q49,38 52,38 Z"
-        android:fillColor="#0D0D0D"
-        android:strokeWidth="1.2"
-        android:strokeColor="#00FF41"/>
+        android:pathData="M52,37 L73,37 Q76,37 76,40 L76,70 Q76,73 73,73 L52,73 Q49,73 49,70 L49,40 Q49,37 52,37 Z"
+        android:fillColor="#0C0C18"
+        android:strokeWidth="1.5"
+        android:strokeColor="#00FF87"/>
 
     <!-- Phone screen -->
     <path
-        android:pathData="M53,41 L71,41 Q72,41 72,42 L72,66 Q72,67 71,67 L53,67 Q52,67 52,66 L52,42 Q52,41 53,41 Z"
-        android:fillColor="#000000"
+        android:pathData="M53,40 L72,40 Q73,40 73,41 L73,67 Q73,68 72,68 L53,68 Q52,68 52,67 L52,41 Q52,40 53,40 Z"
+        android:fillColor="#04040C"
         android:strokeWidth="0.4"
-        android:strokeColor="#00FF41"
-        android:strokeAlpha="0.6"/>
+        android:strokeColor="#00FF87"
+        android:strokeAlpha="0.5"/>
 
-    <!-- Signal dot on phone -->
+    <!-- Signal dot on phone — Neon Mint -->
     <path
-        android:pathData="M62,54 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0"
-        android:fillColor="#00FF41"/>
+        android:pathData="M62.5,53 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0"
+        android:fillColor="#00FF87"/>
+
+    <!-- Small NFC icon on screen — Cyan -->
+    <path
+        android:pathData="M58,48 A6,6 0 0,1 58,58"
+        android:strokeWidth="1"
+        android:strokeColor="#00E5FF"
+        android:strokeAlpha="0.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"/>
 
 </vector>
